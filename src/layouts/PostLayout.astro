@@ -52,8 +52,7 @@ const jsonLd = {
                 class="chip chip--cat"
                 href={section ? `/categories/${category.slug}/#${section.id}` : `/categories/${category.slug}/`}
               >
-                {category.title}
-                {section && ` · ${section.title}`}
+                {`${category.title}${section ? ` · ${section.title}` : ''}`}
               </a>
             )
           }
