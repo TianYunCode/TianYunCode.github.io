@@ -3,7 +3,7 @@ import sitemap from '@astrojs/sitemap';
 
 // site 决定 RSS / sitemap / OG 分享链接里的绝对域名，换域名只改这一行
 export default defineConfig({
-  site: 'https://wty-blog.abrdns.com',
+  site: 'https://wty.blogs.abrdns.com',
   output: 'static',
   trailingSlash: 'always',
   integrations: [sitemap()],
