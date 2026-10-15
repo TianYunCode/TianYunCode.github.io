@@ -31,30 +31,31 @@ comment: true         # 可选，false 关闭本页评论
 - 想临时藏一篇：文件名加下划线前缀 `_wip.md`，或写 `draft: true`。
 - 字段名写错会在 `npm run build` 阶段直接报错（schema 在 `src/content.config.ts`）。
 
-## 部署到 GitHub Pages
+## 部署（已配好）
 
-1. 在 GitHub 建一个空仓库（Public，`main` 分支，不要初始化 README）。
-2. 推送本目录：
+线上地址：<https://tianyuncode.github.io/>　仓库：`TianYunCode/TianYunCode.github.io`（根站仓库，所以 URL 没有路径前缀）。
+Pages 的 Source 已设为 **GitHub Actions**，流水线是 `.github/workflows/deploy.yml`。
 
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "init: Astro blog"
-   git remote add origin https://<你的用户名>@github.com/<用户名>/<仓库名>.git
-   git push -u origin main
-   ```
+日常只需要：
 
-3. 仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**。
-4. 之后每次 `git push`，Actions 里的 *Deploy to GitHub Pages* 工作流会自动构建发布（约 40 秒），地址是 `https://<用户名>.github.io/<仓库名>/`（根站仓库则是 `https://<用户名>.github.io/`）。
+```bash
+git add .
+git commit -m "post: 新文章标题"
+git push
+```
 
-## 自定义域名
+推送后约 40 秒上线。想看构建状态：仓库 **Actions** 标签页里的 *Deploy to GitHub Pages*。
+如果 Actions 报 `Pages not enabled` 之类的错，去 **Settings → Pages → Build and deployment → Source** 确认选的是 **GitHub Actions**（不是 Deploy from a branch）。
+
+## 自定义域名（以后要加的时候）
 
 1. 改 `astro.config.mjs` 里的 `site`（**只改这一行**，RSS / sitemap / OG 链接全部由它派生）。
-2. 新建 `public/CNAME`，内容只有一行域名，不带 `https://` 和斜杠，例如：`blog.example.com`。
+2. 新建 `public/CNAME`，内容只有一行域名，不带 `https://` 和斜杠，例如：`blog.tianyuncode.com`。
 3. 在 DNS 服务商加记录：
-   - 子域名（推荐，`blog.example.com`）：`CNAME` → `<用户名>.github.io.`
-   - 裸域名（`example.com`）：四条 `A` 记录 → `185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`
+   - 子域名（推荐，`blog.xxx.com`）：`CNAME` → `tianyuncode.github.io.`
+   - 裸域名（`xxx.com`）：四条 `A` 记录 → `185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`
 4. 仓库 **Settings → Pages** 勾选 **Enforce HTTPS**（证书由 GitHub 签发，DNS 生效后可能要等几分钟到几小时，第一次显示 pending 是正常的）。
+5. 重新 `git push` 一次让 CNAME 生效。旧地址 `tianyuncode.github.io` 仍然可访问，不影响已分享的链接。
 
 ## 开启评论（Giscus）
 
