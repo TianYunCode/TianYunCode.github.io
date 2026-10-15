@@ -1,0 +1,40 @@
+---
+---
+
+<button class="icon-btn theme-toggle" type="button" data-state="light" aria-label="切换深浅色主题" title="切换深浅色主题">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2Z" />
+  </svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6" />
+  </svg>
+</button>
+
+<script>
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+
+  const sync = () => {
+    const dark = root.dataset.theme === 'dark';
+    if (btn) btn.dataset.state = dark ? 'dark' : 'light';
+  };
+
+  sync();
+
+  btn?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    sync();
+    root.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+  });
+
+  // 用户没手动选过时，跟随系统偏好变化
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (localStorage.getItem('theme')) return;
+    root.dataset.theme = e.matches ? 'dark' : 'light';
+    sync();
+    root.dispatchEvent(new CustomEvent('themechange', { detail: root.dataset.theme }));
+  });
+</script>

@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostItem from '../../components/PostItem.astro';
+import Pagination from '../../components/Pagination.astro';
+import { getPosts } from '../../utils/post';
+import { SITE } from '../../config';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  const pages = Math.ceil(posts.length / SITE.postsPerPage);
+  return Array.from({ length: pages - 1 }, (_, i) => ({
+    params: { page: String(i + 2) },
+    props: { page: i + 2, posts },
+  }));
+}
+
+const { page, posts } = Astro.props as { page: number; posts: Awaited<ReturnType<typeof getPosts>> };
+const slice = posts.slice((page - 1) * SITE.postsPerPage, page * SITE.postsPerPage);
+---
+
+<BaseLayout title={`第 ${page} 页`}>
+  <div class="post-list">
+    {slice.map((post) => <PostItem post={post} />)}
+  </div>
+  <Pagination {page} total={Math.ceil(posts.length / SITE.postsPerPage)} />
+</BaseLayout>

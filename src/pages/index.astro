@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostItem from '../components/PostItem.astro';
+import Pagination from '../components/Pagination.astro';
+import { getPosts } from '../utils/post';
+import { SITE } from '../config';
+
+const posts = await getPosts();
+const first = posts.slice(0, SITE.postsPerPage);
+const total = Math.ceil(posts.length / SITE.postsPerPage);
+---
+
+<BaseLayout>
+  <section class="hero">
+    <h1>{SITE.title}</h1>
+    <p>{SITE.description}</p>
+    <a class="rss-link" href="/rss.xml">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M4 11a9 9 0 0 1 9 9h-2.5A6.5 6.5 0 0 0 4 13.5V11Zm0-5a14 14 0 0 1 14 14h-2.5A11.5 11.5 0 0 0 4 8.5V6Zm2.6 12.1a2.1 2.1 0 1 1-2.1 2.1 2.1 2.1 0 0 1 2.1-2.1Z" />
+      </svg>
+      RSS 订阅
+    </a>
+  </section>
+
+  <div class="post-list">
+    {first.map((post) => <PostItem post={post} />)}
+  </div>
+
+  <Pagination page={1} total={total} />
+</BaseLayout>

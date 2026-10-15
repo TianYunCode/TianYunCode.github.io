@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+.env
+.env.*
+
+# 本地生成 og.png 用的字体副本与临时文本，不入库
+design/font/
+design/t-*.txt

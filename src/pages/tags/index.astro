@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, tagCounts } from '../../utils/post';
+import { SITE } from '../../config';
+
+const tags = tagCounts(await getPosts());
+---
+
+<BaseLayout title="标签" description={`${SITE.title}的标签索引`}>
+  <h1 class="page-title">标签</h1>
+  <p class="page-lead">共 {tags.length} 个标签，点击查看该标签下的全部文章。</p>
+  <div class="tag-cloud">
+    {
+      tags.map(({ tag, posts }) => (
+        <a href={`/tags/${encodeURIComponent(tag)}/`}>
+          {tag}
+          <strong>{posts.length}</strong>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>

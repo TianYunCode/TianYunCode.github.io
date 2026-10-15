@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="博客图标">
+  <rect width="64" height="64" rx="14" fill="#1b1e23" />
+  <path d="M22 16h13a8 8 0 0 1 0 16h-4" fill="none" stroke="#8fb2ff" stroke-width="5" stroke-linecap="round" />
+  <path d="M22 16v32" fill="none" stroke="#8fb2ff" stroke-width="5" stroke-linecap="round" />
+  <path d="M35 48H22m13-13v13" fill="none" stroke="#fbfaf7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,24 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+import { SITE } from '../config';
+
+const pathname = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) =>
+  href === '/' ? pathname === '/' : pathname.startsWith(href.replace(/\/$/, ''));
+---
+
+<header class="site-header">
+  <div class="shell site-header__inner">
+    <a class="wordmark" href={Astro.site ? new URL('/', Astro.site).pathname : '/'}>{SITE.title}</a>
+    <nav class="site-nav" aria-label="主导航">
+      {
+        SITE.nav.map((item) => (
+          <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+      <ThemeToggle />
+    </nav>
+  </div>
+</header>

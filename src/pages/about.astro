@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+import { getPosts } from '../utils/post';
+
+const posts = await getPosts();
+---
+
+<BaseLayout title="关于" description={`关于 ${SITE.title} 与作者 ${SITE.author}`}>
+  <h1 class="page-title">关于</h1>
+  <div class="prose page-body">
+    <p>
+      这里是 {SITE.author} 的个人博客，主要记录 {SITE.tagline}。目前共 {posts.length} 篇。
+    </p>
+    <h2>这个站怎么搭的</h2>
+    <ul>
+      <li>用 <a href="https://astro.build">Astro</a> 的内容集合管理文章，Markdown 写作，构建出纯静态页面。</li>
+      <li>托管在 GitHub Pages，推送到 <code>main</code> 分支后由 GitHub Actions 自动构建部署。</li>
+      <li>没有第三方框架 UI，样式是自己写的一套，深浅色主题跟随系统，也可以手动切换。</li>
+      <li>评论走 <a href="https://giscus.app">Giscus</a>，讨论内容存在 GitHub Discussions 里。</li>
+    </ul>
+    <h2>联系我</h2>
+    <p>
+      想交流可以在文章底下留言，或者订阅 <a href="/rss.xml">RSS</a>。邮箱：
+      <code>wty@example.com</code>
+    </p>
+    <blockquote>
+      <p>把这一页换成你自己的介绍。</p>
+    </blockquote>
+  </div>
+</BaseLayout>

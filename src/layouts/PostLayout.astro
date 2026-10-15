@@ -1,0 +1,160 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Giscus from '../components/Giscus.astro';
+import { SITE } from '../config';
+import { formatDate, isoDate, postPath, readingMinutes, type Post } from '../utils/post';
+
+const { post, prev, next } = Astro.props as { post: Post; prev?: Post; next?: Post };
+const minutes = readingMinutes(post.body ?? '');
+const markdownHeadings = (post.body ?? '').match(/^#{2,3}\s+\S.*$/gm) ?? [];
+const hasToc = markdownHeadings.length >= 2;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  inLanguage: 'zh-CN',
+  datePublished: isoDate(post.data.date),
+  ...(post.data.updated ? { dateModified: isoDate(post.data.updated) } : {}),
+  author: { '@type': 'Person', name: SITE.author },
+  url: postPath(post),
+};
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description || SITE.description}
+  ogType="article"
+  publishedTime={post.data.date}
+>
+  <div class:list={['article-wrap', { 'article-wrap--wide': !hasToc }]}>
+    <article class="article">
+      <header>
+        <h1 class="article__title">{post.data.title}</h1>
+        <div class="meta article__meta">
+          <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+          <span class="meta__dot" aria-hidden="true"></span>
+          <span>{minutes} 分钟阅读</span>
+          {
+            post.data.updated && (
+              <>
+                <span class="meta__dot" aria-hidden="true"></span>
+                <span>更新于 {formatDate(post.data.updated)}</span>
+              </>
+            )
+          }
+          {
+            post.data.tags.map((tag) => (
+              <a class="chip" href={`/tags/${encodeURIComponent(tag)}/`}>
+                {tag}
+              </a>
+            ))
+          }
+        </div>
+      </header>
+
+      <div class="prose">
+        <slot />
+      </div>
+
+      {(prev || next) && (
+        <nav class="article-nav" aria-label="相邻文章">
+          {
+            prev && (
+              <a href={postPath(prev)} rel="prev">
+                <small>上一篇</small>
+                <span>{prev.data.title}</span>
+              </a>
+            )
+          }
+          {
+            next && (
+              <a class="next" href={postPath(next)} rel="next">
+                <small>下一篇</small>
+                <span>{next.data.title}</span>
+              </a>
+            )
+          }
+        </nav>
+      )}
+
+      <Giscus enabled={post.data.comment} />
+    </article>
+
+    {
+      hasToc && (
+        <aside class="toc" aria-label="文章目录">
+          <p class="toc__title">目录</p>
+          <ul id="toc-list"></ul>
+        </aside>
+      )
+    }
+  </div>
+
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />
+
+  <script>
+    const prose = document.querySelector<HTMLElement>('.prose');
+    const tocList = document.getElementById('toc-list');
+
+    const slug = (text: string) =>
+      text
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\p{Letter}\p{Number}-]/gu, '') || 'section';
+
+    if (prose) {
+      const headings = [...prose.querySelectorAll<HTMLHeadingElement>('h2, h3')];
+      const used = new Set<string>();
+
+      headings.forEach((heading) => {
+        let id = slug(heading.textContent ?? '');
+        while (used.has(id)) id = `${id}-2`;
+        used.add(id);
+        heading.id = id;
+        tocList?.insertAdjacentHTML(
+          'beforeend',
+          `<li data-level="${heading.tagName.slice(1)}"><a href="#${id}">${heading.textContent}</a></li>`
+        );
+      });
+
+      const links = [...(tocList?.querySelectorAll<HTMLAnchorElement>('a') ?? [])];
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            links.forEach((link) =>
+              link.setAttribute('aria-current', String(link.getAttribute('href') === `#${entry.target.id}`))
+            );
+          }
+        },
+        { rootMargin: '-88px 0px -480px 0px' }
+      );
+      headings.forEach((h) => observer.observe(h));
+    }
+
+    for (const pre of document.querySelectorAll<HTMLPreElement>('.prose pre')) {
+      const lang = pre.dataset.language;
+      const code = pre.querySelector('code');
+      if (!code) continue;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'code-wrap';
+      pre.replaceWith(wrap);
+      wrap.appendChild(pre);
+
+      if (lang) wrap.insertAdjacentHTML('beforeend', `<span class="code-lang">${lang}</span>`);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'code-copy';
+      btn.textContent = '复制';
+      btn.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(code.textContent ?? '');
+        btn.textContent = '已复制';
+        setTimeout(() => (btn.textContent = '复制'), 1600);
+      });
+      wrap.appendChild(btn);
+    }
+  </script>
+</BaseLayout>
