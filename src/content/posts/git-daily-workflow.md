@@ -7,7 +7,7 @@ category: engineering
 section: eng-git-basics
 ---
 
-> 环境：Windows 11 x64；Git 2.56.0.windows.1；`D:/Qt/Tools/mingw1310_64/bin/g++.exe`。真实仓库 `C:\Users\wangt\data\blog` 以提交 **2ef0bdd** 为锚点：58 个提交 / 102 个跟踪文件 / 65 篇文章 / `git rev-list --merges --count 2ef0bdd` = **0** / `git tag` = **0** / `git shortlog -sn HEAD` 只有 wty 一人 58。本篇所有写操作（commit / restore / reset / add -p / pull --rebase / fsck）都在 `C:/Users/wangt/AppData/Local/Temp/agents/engineering4/` 下新建的临时仓库里跑，博客仓库只执行只读命令；下面每段 ```text 都是那一次运行的原始输出。
+> 环境：Windows 11 x64；Git 2.56.0.windows.1；`D:/Qt/Tools/mingw1310_64/bin/g++.exe`。真实仓库 `C:\Users\wangt\data\blog` 以提交 **9d5f630** 为锚点：60 个提交 / 108 个跟踪文件 / 71 篇文章 / `git rev-list --merges --count 9d5f630` = **0** / `git tag` = **0** / `git shortlog -sn HEAD` 只有 wty 一人 60。命令耗时那组数字测于稍早的 **2ef0bdd**（当时 58 个提交 / 102 个跟踪文件 / 65 篇文章），下面注明。本篇所有写操作（commit / restore / reset / add -p / pull --rebase / fsck）都在 `C:/Users/wangt/AppData/Local/Temp/agents/engineering4/` 下新建的临时仓库里跑，博客仓库只执行只读命令；下面每段 ```text 都是那一次运行的原始输出。
 
 工作里见过的 Git 教程，一半在讲怎么用 `git bisect` 定位引入 bug 的提交，另一半在讲 worktree。这些确实有用，但一天下来我真正敲的命令非常少。
 
@@ -35,15 +35,14 @@ git push
 | `??` | `?? log.tmp` | 从没进过索引 | 新文件忘 add 就在这里看 |
 | `UU` | `UU notes.txt` | 冲突未解决 | 此时别 `-a`，先解冲突 |
 
-五条命令的成本（本机 5 次运行的中位数与区间）：`git status --porcelain` **94.9 ms**（94.3–136.6）、`git status --untracked-files=no` 82.3 ms（74.3–91.7）、`git log -1 --format=%h` 58.8 ms（55.2–69.8）、`git rev-parse HEAD` 57.9 ms（53.1–60.1）。
+五条命令的成本（测于锚点 **2ef0bdd**：58 提交 / 102 个跟踪文件；本机 5 次运行的中位数与区间）：`git status --porcelain` **94.9 ms**（94.3–136.6）、`git status --untracked-files=no` 82.3 ms（74.3–91.7）、`git log -1 --format=%h` 58.8 ms（55.2–69.8）、`git rev-parse HEAD` 57.9 ms（53.1–60.1）。
 
-**Windows 上任何一条 git 命令的地板价约 55–58ms，那是进程启动，不是 git 干的活**；`status` 在 102 个跟踪文件的真实仓库上只比地板贵约 37ms。真正让它贵的是未跟踪文件的枚举：
+**Windows 上任何一条 git 命令的地板价约 55–58ms，那是进程启动，不是 git 干的活**；`status` 在 102 个跟踪文件的真实仓库上只比地板贵约 37ms。这组数会随邻居负载漂：我在 9d5f630 上重跑同一批命令，`status` 两批中位分别是 **149.8** 和 **164.0 ms**、`git log -1` 变成 109.2 ms——同机有三个 agent 在跑构建。**绝对时间只能当量级看，可复用的是"最便宜命令的下界就是地板价"这个结构**。真正让 `status` 贵的是未跟踪文件的枚举：
 
 ```text
-3000 个未跟踪文件，整个 build/ 目录无一被跟踪
-  git status --porcelain  → ?? build/  1 行  78.2 ms（-uall 展开成 3000 行：78.6 ms）
+3000 个未跟踪文件、整个 build/ 无一被跟踪 → ?? build/  1 行  78.2 ms（-uall 展开成 3000 行：78.6 ms）
 20000 个未跟踪文件 + 一个被跟踪的 dist/.gitkeep → 20000 行  197.2 ms（139.3–307.8）
-  .gitignore 加一行 dist/                        → 1 行      88.3 ms（80.4–96.2）
+  同样的仓库，.gitignore 加一行 dist/          → 1 行       88.3 ms（80.4–96.2）
 ```
 
 目录**整体**未跟踪时 git 不进去（折叠，省事）；可只要目录里躺着一个被跟踪的文件——真实的 `dist/` 里一个 `.gitkeep` 就够了——折叠失效，两万行全部展开。**一行 `.gitignore` 把 status 从 197ms 降到 88ms、从 20000 行降到 1 行**，这才是"status 慢"的真实来源。
@@ -52,10 +51,12 @@ git push
 
 临时仓库一个 11 行的 `calc.c`，一次改了三件事：两个函数的花括号风格（纯格式化）、新增 `sub()`、`main()` 改调用 `sub()`。`git diff --stat` 是 `11 insertions(+), 5 deletions(-)`，而 `git diff | grep -c '^@@'` 在默认 `-U3` 下只有 **1**，`git diff -U0` 是 **3**。
 
-**格式化把本来隔开的改动粘成了一个 hunk**（两处改动之间不足 6 行未改内容就会被合并）。这时"逐块问你 y/n"只有一块可问，得按 `s`：`(1/1) Stage this hunk [y,n,q,a,d,s,e,p,P,?]? Split into 3 hunks.`，块数正好等于 `-U0` 的结果。但第二块里 `mul()` 的格式化（前 3 行）和 `sub()` 的新增（后 4 行）是**相邻行**，中间没有未改行，`s` 切不开：
+**格式化把本来隔开的改动粘成了一个 hunk**（两处改动之间不足 6 行未改内容就会被合并）。这时"逐块问你 y/n"只有一块可问，得按 `s`：`(1/1) Stage this hunk [y,n,q,a,d,s,e,p,P,?]? Split into 3 hunks.`，块数正好等于 `-U0` 的结果。但第二块里 `mul()` 的格式化（那 2 行删除 + 紧接的 4 行新增）和 `sub()` 的新增（后面 3 行 `+`）是**相邻的，中间没有未改行**，`s` 切不开：
 
 ```text
 @@ -3,7 +4,12 @@
+ }
+
 -int mul(int a, int b) {
 -    return a * b;
 +int mul(int a, int b)
@@ -90,21 +91,17 @@ $ git diff --cached
 我第一版自己重排了整段（顺手删掉 `#` 注释行、收尾上下文也不够），被直接退回 `error: corrupt patch at <stdin>:23`——**按指引原地改、别动块的结构，才是稳的**。之后把 `main()` 那块 stage 上、`git commit --amend --no-edit` 并进同一个提交，剩下的纯格式化单独一笔：
 
 ```text
-$ git log --oneline
-573ff82 style: 统一大括号与缩进         → g++ 编译 OK
-ac8b539 feat: 新增 sub 并在 main 里用    → g++ 编译 OK
-dcaecf3 init: calc.c                    → g++ 编译 OK
+$ git log --oneline        ← 三笔，逐笔取出来用 g++ 全路径编译，全部 OK
+573ff82 style: 统一大括号与缩进
+ac8b539 feat: 新增 sub 并在 main 里用
+dcaecf3 init: calc.c
 ```
 
 拆提交的判据只有一条：**每个提交都能独立构建**；做不到就把两块并成一笔，比制造一个坏提交便宜得多。实测用过的按键只有 `y n q s e k j`（`k`/`j` 是拆块之后才出现在提示里的）；`a d p P g /` 我没验证过，别当结论用。
 
 ## 四、`git commit --amend`：只能碰最后一笔
 
-**改完 commit message 但还没推送：**
-
-```bash
-git commit --amend
-```
+**改完 commit message 但还没推送：** 直接 `git commit --amend`。
 
 上一节我用它把 `main()` 那行补进 feat 提交，`1f1b40d` 变成 `ac8b539`——**这不是"修改"提交，是新建一个替换它**：父提交、时间、SHA 全变，`git reflog` 里两条都在。所以动手前先 `git log -1 --format='%h %s'` 确认 HEAD 就是你要改的那笔。
 
@@ -168,18 +165,18 @@ git reset --hard HEAD                         two    two     two       (空)
 2. `git status` 确认工作区干净
 3. 再去看构建和部署日志
 
-要补第四种：**工作树的字节和库里的字节不一致，而 status 显示干净**。本仓库实测（锚点 2ef0bdd，102 个跟踪文件）：
+要补第四种：**工作树的字节和库里的字节不一致，而 status 显示干净**。本仓库实测（锚点 9d5f630，108 个跟踪文件；`git ls-files --eol` 读的是索引+工作树，所以这组分布数会随总控不断入库的新文章增长，重跑一次即可复核）：
 
 ```text
 $ git ls-files --eol | awk '{print $1" "$2}' | sort | uniq -c
-     98 i/lf w/lf
-      3 i/lf w/crlf
-      1 i/-text w/-text
+     104 i/lf w/lf
+       3 i/lf w/crlf
+       1 i/-text w/-text
 $ git show HEAD:src/content.config.ts > /tmp/b.txt && cmp /tmp/b.txt src/content.config.ts
 Files /tmp/b.txt and src/content.config.ts differ     # 工作树 2177 / 库内 2126 字节
 ```
 
-102 个跟踪文件里 3 个 `i/lf w/crlf`：`src/content.config.ts` 加两篇文章；`i/-text` 那个是 `public/og.png`（二进制，正常）。这 3 个文件的 `git status --porcelain -- <路径>` 都是 **0 行**（"干净"），但字节不同。`content.config.ts` 差 51 字节恰好等于它的行数 51（每个 LF 多一个 CR）；`engineering-unit-test-and-mock.md` 同理，13781 vs 13583，差 198 = 行数。反过来的情形也真实存在——把工作树文件改成纯 CRLF：
+108 个跟踪文件里 3 个 `i/lf w/crlf`：`src/content.config.ts` 加两篇文章；`i/-text` 那个是 `public/og.png`（二进制，正常）。这 3 个文件的 `git status --porcelain -- <路径>` 都是 **0 行**（"干净"），但字节不同。`content.config.ts` 差 51 字节恰好等于它的行数 51（每个 LF 多一个 CR）；`engineering-unit-test-and-mock.md` 同理，13781 vs 13583，差 198 = 行数。反过来的情形也真实存在——把工作树文件改成纯 CRLF：
 
 ```text
 $ git status --porcelain
@@ -195,8 +192,9 @@ $ git status --porcelain          ← 空：暂存之后"改动"蒸发
 
 ## 小结
 
-- 要理解的是**三区**：` M`/`M `/`MM`/`??`/`UU` 五个短码覆盖日常全部状态；`status` 在 102 个跟踪文件的仓库上 94.9ms，其中约 55–58ms 是 Windows 进程启动地板价，贵出来的那部分是未跟踪文件枚举（2 万行展开 197.2ms，`.gitignore` 加一行降到 88.3ms）。
+- 要理解的是**三区**：` M`/`M `/`MM`/`??`/`UU` 五个短码覆盖日常全部状态；`status` 在 102 个跟踪文件的仓库上 94.9ms（测于 2ef0bdd），其中约 55–58ms 是 Windows 进程启动地板价，贵出来的那部分是未跟踪文件枚举（2 万行展开 197.2ms，`.gitignore` 加一行降到 88.3ms）。
 - `git add -p`：11 增 5 删的混合改动在默认 `-U3` 下只有 **1 个 hunk**，`s` 拆成 **3 个**；`s` 切不开相邻的格式化与功能改动，得用 `e` 按 git 给的指引原地剪。**硬按 hunk 拆的第一笔编译失败**（`'sub' was not declared in this scope`），剪好后三笔全部编译通过——判据是"每笔可构建"，不是"块越多越好"。
 - `--amend` 是替换不是修改（`1f1b40d` → `ac8b539`），只允许用在没共享的最后一笔；已共享只能补新提交或 `git revert`。
-- rebase 冲突里 **`--ours` 是上游、`--theirs` 才是你**（两遍实测），设 `merge.conflictstyle zdiff3` 才看得到 base；未暂存的已跟踪改动会让 `pull --rebase` 完全不发生，只有未跟踪文件时它照跑。本仓库 58 提交 0 merge，但系统配置里 `pull.rebase=false`——线性历史是显式 `--rebase` 换来的。
-- 撤销按层给命令：`reset --hard` 之后进过索引的能靠 `git fsck --lost-found` 捞出（实测捞出 `three`），只在磁盘上存在过的（`four`）永久丢失，reflog 无能为力；「改动没生效」还要多查一条——本机 `core.autocrlf=true` 来自 `D:/Git/etc/gitconfig`，本仓库 3 个文件工作树 CRLF 而库内 LF 且 `git status` 干净，先 `git ls-files --eol` 再怀疑代码。
+- rebase 冲突里 **`--ours` 是上游、`--theirs` 才是你**（两遍实测），设 `merge.conflictstyle zdiff3` 才看得到 base；未暂存的已跟踪改动会让 `pull --rebase` 完全不发生，只有未跟踪文件时它照跑。本仓库 9d5f630 处 60 个提交、0 个 merge，但系统配置里 `pull.rebase=false`——线性历史是显式 `--rebase` 换来的。
+- 撤销按层给命令：`--hard` 之后进过索引的能靠 `git fsck --lost-found` 捞出（实测捞出 `three`），只在磁盘上存在过的（`four`）永久丢失，reflog 无能为力。
+- 「改动没生效」多查一条：本机 `core.autocrlf=true` 来自 `D:/Git/etc/gitconfig`，本仓库 3 个文件工作树是 CRLF 而库内是 LF 且 `git status` 显示干净——先 `git ls-files --eol`，再怀疑代码。

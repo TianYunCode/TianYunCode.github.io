@@ -54,15 +54,14 @@ section: win-resource
 | --- | --- | --- |
 | `MAKEINTRESOURCEW(200)` + `L"MYDATA"` | 命中 Size=4194322 | 0 |
 | `MAKEINTRESOURCEW(200)` + `L"mydata"` | **同一个 HRSRC**，Size=4194322 | 0 |
-| `MAKEINTRESOURCEW(200)` + `L"MYDAT"` | 未命中 | 1813 |
-| `MAKEINTRESOURCEW(200)` + 序数 `101` | 未命中 | 1813 |
+| `MAKEINTRESOURCEW(200)` + 序数 `101` | 未命中（少一个字母也一样） | 1813 |
 | `MAKEINTRESOURCEW(200)` + `L"*"` | 未命中 | 1813 |
 | `L"PAYNAME"` / `L"payname"` + `L"MYDATA"` | **都命中**同一条 | 1813（残值，见下） |
 | `L" PAYNAME"` / `L"PAYNAME "` | 未命中 | 1814 |
 | 序数 `101` + `RT_BITMAP` | 命中 Size=228 | 1814（残值） |
 | 字符串 `L"101"` + `RT_BITMAP` | 未命中 | 1814 |
 
-四条规矩：**.rc 里的裸标识符类型存成"字符串类型"，序数类型永远找不到它**（想两边通用就得在 .rc 里写 `201 101 "file"`）；类型名和资源名都是**大小写不敏感**但**不忽略空格**；`FindResource` **不支持 `*` 通配**（`EnumResourceNames` 传 `NULL` 才是"全部"）；错误码分两级——**1813 = 找不到指定的资源类型，1814 = 类型在、名字不在**，这两个码能直接告诉你 .rc 里的 ID 是不是写漏了。另外 `PAYNAME` 那行命中了却打印 `lasterr=1814`：**成功路径不重置 `GetLastError`**，判成败只看返回值。
+四条规矩：**.rc 里的裸标识符类型存成"字符串类型"，序数类型永远找不到它**（想两边通用就得在 .rc 里写 `201 101 "file"`）；类型名和资源名都是**大小写不敏感**但**不忽略空格**；`FindResource` **不支持 `*` 通配**（`EnumResourceNames` 传 `NULL` 才是"全部"）；错误码分两级——**1813 = 找不到指定的资源类型，1814 = 类型在、名字不在**，这两个码能直接告诉你 .rc 里的 ID 是不是写漏了。另外 `PAYNAME` 那行明明命中了却仍然打印 `lasterr=1813`：**成功路径不重置 `GetLastError`**，判成败只看返回值。
 
 `EnumResourceNamesW` 的回调返回 `FALSE`（包括传 `NULL` 回调）时：`返回=0 命中=1 lasterr=998`——正常的"提前停止枚举"报了个 `ERROR_INVALID_ADDRESS`，我在 r1 和 r10 两次独立看到，别拿它当故障。
 
@@ -153,10 +152,8 @@ biSize=40  biWidth=8  biHeight=8  biPlanes=1 biBitCount=24  biCompression=0(BI_R
 ```text
 FindResource+SizeofResource：6.0 µs（8.3 µs 另一次）    ← 只读目录，不碰数据
 LoadResource+LockResource：0.9 µs → ptr=00007ff709446960  两次 LoadResource 句柄相同=1 FreeResource=0
-调用前：WorkingSet=7.6 MB Private=6.5 MB 页错误=2014
-每 4KB 采样一次（1024 次）：1.62 ms  页错误 +1023  WorkingSet +4.0 MB Private +0.0 MB
-再采样一次（页已在）：0.01 ms  sum=139
-VirtualQuery：State=0x1000 Protect=0x8 RegionSize=4501504（= .rsrc 的 4501176 向上取整）
+调用前 WorkingSet=7.6 MB Private=6.5 MB 页错误=2014；每 4KB 采样一次（1024 次）：1.62 ms 页错误 +1023 工作集 +4.0 MB Private +0.0 MB
+再采样一次（页已在）0.01 ms；VirtualQuery State=0x1000 Protect=0x8 RegionSize=4501504（= .rsrc 的 4501176 向上取整）
 ```
 
 `LoadResource` 名义上是"加载"，实测**一次内存拷贝都没有**：它只是在映射里定位，真正付出代价的是**你读它**——1024 次采样 = 1023 个硬页错误 + 4.0MB 工作集，第二次采样便宜 162 倍。`Private` 全程 +0.0MB，说明这些页是可被丢弃的文件映射页，不是堆。所以"加载大资源占内存"这个说法要改成：**只有你读过的页占内存**。
@@ -167,12 +164,10 @@ VirtualQuery：State=0x1000 Protect=0x8 RegionSize=4501504（= .rsrc 的 4501176
 ddores.dll  文件=71600 字节  SizeOfImage=61440  段数=7
   .rsrc VSize=1376 Raw=4096 Ptr=53248；DataDirectory[RTE_Resources] VA=0xD000 Size=1376
   RT_ICON 枚举 1096 条，SizeofResource 合计=16303340 字节 = 文件大小的 228 倍
-  1096 个 LockResource 指针两两不同（去重后=1096），全部落在同一个区域：
-    AllocationBase=000001401a5d0000 RegionSize=16322560 State=0x1000 Protect=0x2(PAGE_READONLY) Type=0x40000(MEM_MAPPED)
-  逐条读每条声明范围的最后一个字节：1096/1096 全部可读且仍在同一分配内
+  1096 个 LockResource 指针两两不同（去重后=1096），全部落在同一区域：AllocationBase=000001401a5d0000
+    RegionSize=16322560 State=0x1000 Protect=0x2(PAGE_READONLY) Type=0x40000(MEM_MAPPED)；逐条读声明范围最后一个字节 1096/1096 可读
   把整个 71600 字节文件读进内存，逐偏移搜索最大那条的前 32 字节（89 50 4E 47 …，PNG IHDR 256×256）：0 命中
-  文件流：::$DATA(71600) 一条，无其它 ADS
-  逐条 Lock 完 1096 条之后：WorkingSet=5616KB→5616KB Private=924KB→924KB 页错误=1482→1482
+  文件流只有 ::$DATA(71600)，无其它 ADS；逐条 Lock 完 1096 条之后 WorkingSet=5616KB→5616KB Private=924KB→924KB 页错误=1482→1482
 mmres.dll   文件=12288 字节 RTE_Resources Size=2352，而 RT_ICON #1 声明 27917 字节（比整个文件大）
            #2 头 16 字节 = 28 00 00 00 40 00 00 00 80 00 00 00 01 00 20 00 → w=64 h=128（双高 DIB，下半是 AND 掩码）
 shell32.dll 文件=8009440 资源合计=18255765（227.9%）  类型=19 条目=3570
@@ -180,12 +175,12 @@ shell32.dll 文件=8009440 资源合计=18255765（227.9%）  类型=19 条目=3
 
 结论有三层。**第一**，`SizeofResource` 是目录里的**声明值**，求和既不是文件大小也不是内存占用，别拿它做资源体积预算。**第二**，`LockResource` 对这些系统 DLL 返回的指针**不在模块镜像里**（完整加载后 `GetModuleInformation` 给 `SizeOfImage=61440`，指针却在几百 MB 之外的另一个分配），那是一块 `MEM_MAPPED` + `PAGE_READONLY` 的共享映射：内容有效（PNG 签名、`h=2w` 的图标 DIB 都对得上），但**在这 71 600 字节的文件里逐偏移搜不到**，且读满 1096 条之后工作集/私有内存/页错误计数一个都没动——它跨进程共享，不是你进程新占的量。**这 16MB 的磁盘来源我没查清**（文件里没有、无 ADS、不是解压到私有内存），剩下属于装载器内部实现，本节到此为止不猜。
 
-还有一个纯粹由写法造成的性能悬崖，同一份 shell32、同样 3570 条目：**只按名字取尺寸**（每个名字一次 `FindResourceExW`）全量枚举 **6.02 ms**；在同一次遍历里对每个名字**再多问一句 `EnumResourceLanguagesW`**，变成 **18,994 ms——3156 倍**。语言列表要按需查，不要全量扫：单次调用看着不起眼，乘上条目数就是三个数量级。
+还有一个纯粹由写法造成的性能悬崖，同一份 shell32、同样 3570 个条目：**只按名字取尺寸**（每个名字一次 `FindResourceExW`）全量枚举 **3.79–6.02 ms**；在同一次遍历里对每个 (类型,名字) **再多问一句 `EnumResourceLanguagesW`**，两次运行分别是 **18 994 ms 和 33 105 ms——约 5000 倍**。语言列表要按需查，不要全量扫：单次调用看着不起眼，乘上条目数就是三个数量级。
 
 DATAFILE 的其它只读盘点数字：
 
 ```text
-映射耗时（我的运行 vs 同事的运行，冷/热混合）：user32 0.46/2.39 ms  comdlg32 0.72/12.22 ms  shell32 0.73/1.08 ms
+映射耗时（我的运行 / 同事的运行，冷热混合）：user32 0.46/2.39 ms  comdlg32 0.72/12.22 ms  shell32 0.73/1.08 ms
 comdlg32：DATAFILE 平均 2.03 ms vs 完整 LoadLibrary 平均 7.98 ms（各 5 次）——只要资源就别完整加载
 DATAFILE 句柄低位是 1（00000210d4420001）；同一 DLL 的 DATAFILE 句柄与完整加载句柄是两个不同值
 DATAFILE 句柄上 GetProcAddress：user32 → 00007ffa320e2180（竟然成功）；comdlg32/shell32/msctf → NULL lasterr=126
