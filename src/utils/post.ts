@@ -1,9 +1,30 @@
 import { getCollection } from 'astro:content';
+import { CATEGORY_MAP, SECTION_INDEX } from '../data/categories';
 
 export type Post = Awaited<ReturnType<typeof getPosts>>[number];
 
+// Astro 5.18 的 glob() 没有 transform 选项，校验只能放在读取端；这里抛错会让构建失败。
+function assertIntegrity(posts: readonly { id: string; data: { category?: string; section?: string } }[]) {
+  for (const p of posts) {
+    const { category, section } = p.data;
+    if (category && !CATEGORY_MAP.has(category)) {
+      throw new Error(`「${p.id}」的 category "${category}" 不在 src/data/categories.ts 的大类清单里`);
+    }
+    if (!section) continue;
+    const hit = SECTION_INDEX.get(section);
+    if (!hit) throw new Error(`「${p.id}」的 section "${section}" 不存在，见 src/data/categories.ts`);
+    if (!category) throw new Error(`「${p.id}」写了 section "${section}" 但没写 category`);
+    if (hit.category.slug !== category) {
+      throw new Error(
+        `「${p.id}」的 section "${section}" 属于大类 "${hit.category.slug}"，不是 "${category}"`
+      );
+    }
+  }
+}
+
 export async function getPosts() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
+  assertIntegrity(posts);
   // 同一天发布的文章按文件名升序，保证系列文章的先后顺序稳定
   return posts.sort(
     (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id)

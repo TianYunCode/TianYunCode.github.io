@@ -9,6 +9,7 @@ npm ci          # 首次安装依赖
 npm run dev     # http://localhost:4321 热更新
 npm run build   # 构建到 dist/
 npm run preview # 本地预览构建产物
+npm run check   # Astro 官方类型/内容校验（astro check），构建之外多一道保险
 ```
 
 ## 写文章
@@ -31,7 +32,8 @@ comment: true            # 可选，false 关闭本页评论
 
 - 文件名即 URL：`my-first-post.md` → `/posts/my-first-post/`。放到子目录里也能正常工作（路由用的是 `[...slug]`）。
 - 想临时藏一篇：文件名加下划线前缀 `_wip.md`，或写 `draft: true`。
-- `category` / `section` 写错（拼错、章节归错大类、只写 section 不写 category）**构建时直接报错并指出是哪篇**，不会留下挂不进地图的文章。
+- `category` / `section` 写错（拼错、章节归错大类、只写 section 不写 category）**构建时直接报错并指出是哪篇**，不会留下挂不进地图的文章。校验代码在 `src/utils/post.ts` 的 `assertIntegrity()`——注意 Astro 5.18 的 `glob()` 并不支持 `transform` 选项（传了会被静默忽略），所以校验必须放在读取端，构建每个页面时都会执行。
+- 标签会变成目录名，因此 `tagFolder()` 会把 Windows 非法字符（`<>:"/\|?*` 与控制字符）压成 `-`：`std::thread` 落到 `/tags/std-thread/`。这一步不是美化——同样的标签在 Ubuntu 上的 CI 能建出带冒号的目录，本机 `npm run build` 却会 `ENOENT: mkdir` 直接失败。
 - 字段名写错同样在 `npm run build` 阶段报错（schema 在 `src/content.config.ts`）。
 
 ## 专栏体系
