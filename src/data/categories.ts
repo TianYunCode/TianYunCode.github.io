@@ -24,7 +24,7 @@ export const CATEGORIES: Category[] = [
     sections: [
       { id: 'c-basics', title: '语言骨架：变量、类型与运算符', level: '基础', points: ['关键字、标识符与作用域', '整型/浮点/字符的取值范围与精度损失', '运算符优先级、结合性与求值顺序', '隐式提升与显式转换的坑'] },
       { id: 'c-control', title: '流程控制与函数', level: '基础', points: ['if/switch 的常见陷阱与 fallthrough', '循环边界与 break/continue/goto', '函数声明、定义与前置声明', '递归、栈帧与尾递归'] },
-      { id: 'c-array-string', title: '数组与字符串', level: '基础', points: ['一维/多维数组的内存布局', '数组名退化（decay）与指针的区别', '字符数组与 \0 终止符', '越界访问为什么"看起来能用"'] },
+      { id: 'c-array-string', title: '数组与字符串', level: '基础', points: ['一维/多维数组的内存布局', '数组名退化（decay）与指针的区别', '字符数组与 \\0 终止符', '越界访问为什么"看起来能用"'] },
       { id: 'c-struct-union', title: '结构体、联合体与枚举', level: '基础', points: ['结构体定义、嵌套与自引用', '点/箭头运算符与成员访问', '联合体的类型双关与字节序', '枚举做常量组与状态机'] },
       { id: 'c-preprocess', title: '预处理与编译四阶段', level: '基础', points: ['预处理→编译→汇编→链接各做什么', '#define 宏的参数括号与副作用', '条件编译与平台分支', '头文件守卫、包含顺序与循环包含'] },
       { id: 'c-pointer', title: '指针与内存模型', level: '进阶', points: ['指针算术与数组等价关系', '多级指针与指针的指针', 'void* 与类型擦除的回调设计', '函数指针、回调表与跳转表'] },
