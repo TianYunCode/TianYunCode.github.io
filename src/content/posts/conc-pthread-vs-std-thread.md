@@ -52,7 +52,7 @@ p2.c:57: warning: implicit declaration of function 'pthread_tryjoin_np'; did you
 p2.c:94: error: unknown type name 'sem_t'          ← 要 #include <semaphore.h>，pthread.h 不带它
 ```
 
-`pthread_tryjoin_np` 在这里叫 **`_pthread_tryjoin`**（带下划线前缀，且 `_np` 系列基本没有）。Linux 上那套 `pthread_setname_np(thread, "name")` 也不是你要调的接口（见第六节）。
+`pthread_tryjoin_np` 在这里叫 **`_pthread_tryjoin`**（带下划线前缀，且 `_np` 系列基本没有）。Linux 上那套 `pthread_setname_np(thread, "name")` 也不是你要调的接口（见本篇第六小节）。
 
 ## 三、两套 API 的等价关系，以及 std::thread 缺什么
 
@@ -72,7 +72,7 @@ p2.c:94: error: unknown type name 'sem_t'          ← 要 #include <semaphore.h
 | 栈大小 | `pthread_attr_setstacksize`（`PTHREAD_STACK_MIN` 缺声明） | **没有**接口 |
 | 优先级/亲和性 | `pthread_setschedparam` **在此平台不可用** | **没有**接口 |
 
-std::thread 侧缺的那四行（取消、栈大小、优先级、亲和性）正是很多人回去用 pthread 的唯一理由。但它们在这台机器上也并不都能用——看第五节。
+std::thread 侧缺的那四行（取消、栈大小、优先级、亲和性）正是很多人回去用 pthread 的唯一理由。但它们在这台机器上也并不都能用——看本篇第五小节。
 
 本机的 POSIX 语义确实齐全（读写锁、信号量、屏障都能跑）：
 
@@ -89,7 +89,7 @@ std::thread 侧缺的那四行（取消、栈大小、优先级、亲和性）�
   lock=0 同线程重入 lock=36(EDEADLK=36) trylock=16(EBUSY=16) unlock=0 多余 unlock=1
 ```
 
-同线程重入返回 `EDEADLK` 而不是阻塞、多解一次返回 1（`EPERM`）。而 `NORMAL` 型锁在同一线程已持有时 `trylock` 返回 16（EBUSY），**但阻塞版 `lock` 会真的死锁**——这正是第三节表格里"std::mutex 相当于 NORMAL 型"的实际含义。
+同线程重入返回 `EDEADLK` 而不是阻塞、多解一次返回 1（`EPERM`）。而 `NORMAL` 型锁在同一线程已持有时 `trylock` 返回 16（EBUSY），**但阻塞版 `lock` 会真的死锁**——这正是本篇第三小节表格里"std::mutex 相当于 NORMAL 型"的实际含义。
 
 ## 四、三种生命周期误用，退出码都是 3
 
@@ -145,7 +145,7 @@ terminate called after throwing an instance of 'std::system_error'
   绑到 0b100 后 GetCurrentProcessorNumber=2，GetThreadPriority=2（THREAD_PRIORITY_HIGHEST=2，THREAD_PRIORITY_NORMAL=0）
 ```
 
-**注意这两个 API 是在线程函数体内部调用的**。原因就在第一节：`native_handle()` 给你的是 `pthread_t`（一个内部编号），不是 Win32 的 `HANDLE`，你在外面拿它调 `SetThreadAffinityMask` 是无效的。要在线程外面操作，得先用 `GetCurrentThreadId()` 传出来，再 `OpenThread`——代价是权限和生命周期都要自己管。**实践结论：亲和性和优先级一律在线程自己的第一件事里设置，不要试图从创建方设置。**
+**注意这两个 API 是在线程函数体内部调用的**。原因就在本篇第二小节：`native_handle()` 给你的是 `pthread_t`（一个内部编号），不是 Win32 的 `HANDLE`，你在外面拿它调 `SetThreadAffinityMask` 是无效的。要在线程外面操作，得先用 `GetCurrentThreadId()` 传出来，再 `OpenThread`——代价是权限和生命周期都要自己管。**实践结论：亲和性和优先级一律在线程自己的第一件事里设置，不要试图从创建方设置。**
 
 **线程命名**在这套工具链上是"两头都不顺"：
 
