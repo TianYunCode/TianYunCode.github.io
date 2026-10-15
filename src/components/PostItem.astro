@@ -1,5 +1,5 @@
 ---
-import { formatDate, isoDate, readingMinutes, postPath, type Post } from '../utils/post';
+import { formatDate, isoDate, readingMinutes, postPath, tagHref, type Post } from '../utils/post';
 import { CATEGORY_MAP, SECTION_INDEX } from '../data/categories';
 
 const { post } = Astro.props as { post: Post };
@@ -26,7 +26,7 @@ const section = post.data.section ? SECTION_INDEX.get(post.data.section)?.sectio
     }
     {
       post.data.tags.map((tag) => (
-        <a class="chip" href={`/tags/${encodeURIComponent(tag)}/`}>
+        <a class="chip" href={tagHref(tag)}>
           {tag}
         </a>
       ))

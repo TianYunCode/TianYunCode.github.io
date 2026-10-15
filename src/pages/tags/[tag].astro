@@ -1,13 +1,21 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PostItem from '../../components/PostItem.astro';
-import { getPosts, tagCounts } from '../../utils/post';
+import { getPosts, tagCounts, tagFolder } from '../../utils/post';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
-  return tagCounts(posts).map(({ tag, posts: list }) => ({
-    params: { tag },
-    props: { tag, posts: list },
+  // 两个标签可能被压成同一个目录名（例如 "a:b" 与 "a-b"），这里按目录合并，避免路由重复
+  const byFolder = new Map<string, { tag: string; posts: typeof posts }>();
+  for (const { tag, posts: list } of tagCounts(posts)) {
+    const folder = tagFolder(tag);
+    const cur = byFolder.get(folder);
+    if (cur) cur.posts = [...cur.posts, ...list];
+    else byFolder.set(folder, { tag, posts: list });
+  }
+  return [...byFolder.entries()].map(([folder, props]) => ({
+    params: { tag: folder },
+    props,
   }));
 }
 

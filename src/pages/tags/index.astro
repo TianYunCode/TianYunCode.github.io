@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getPosts, tagCounts } from '../../utils/post';
+import { getPosts, tagCounts, tagHref } from '../../utils/post';
 import { SITE } from '../../config';
 
 const tags = tagCounts(await getPosts());
@@ -12,7 +12,7 @@ const tags = tagCounts(await getPosts());
   <div class="tag-cloud">
     {
       tags.map(({ tag, posts }) => (
-        <a href={`/tags/${encodeURIComponent(tag)}/`}>
+        <a href={tagHref(tag)}>
           {tag}
           <strong>{posts.length}</strong>
         </a>

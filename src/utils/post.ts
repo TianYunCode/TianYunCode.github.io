@@ -60,8 +60,20 @@ export function tagCounts(posts: Post[]) {
     .sort((a, b) => b.posts.length - a.posts.length || a.tag.localeCompare(b.tag, 'zh-CN'));
 }
 
-export function slugifyTag(tag: string) {
-  return encodeURIComponent(tag.toLowerCase());
+// Windows 的目录名不能包含 <>:"/\|?* 与控制字符，而 CI 跑在 Ubuntu 上却能建出这些目录，
+// 所以标签名在落到文件系统之前必须压成跨平台安全的形态。
+export function tagFolder(tag: string) {
+  const illegal = new Set([0x3c, 0x3e, 0x3a, 0x22, 0x2f, 0x5c, 0x7c, 0x3f, 0x2a]);
+  let out = '';
+  for (const ch of tag) {
+    const c = ch.codePointAt(0) ?? 0;
+    out += c < 0x20 || illegal.has(c) ? '-' : ch;
+  }
+  return out.replace(/^-+/, '').replace(/-+$/, '').replace(/-{2,}/g, '-') || 'tag';
+}
+
+export function tagHref(tag: string) {
+  return `/tags/${encodeURIComponent(tagFolder(tag))}/`;
 }
 
 export function postsInCategory(posts: Post[], slug: string) {
