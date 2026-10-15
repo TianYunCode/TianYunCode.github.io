@@ -4,7 +4,7 @@ description: 实测：std::async 每次派生 53.3 微秒，500 个 0.1ms 任务
 date: 2026-10-15
 tags: [并发, future, 无锁快照]
 category: concurrency
-section: conc-patterns
+section: conc-async-patterns
 ---
 
 > 环境：Windows 11 x64，**GCC 13.1.0（MinGW-w64）**，`g++ -std=c++17 -O2 -Wall -Wextra -static`。同期有其他 agent 在抢核，绝对值偏大，**比值和拐点才是本节要给的结论**。所有涉及"算得对不对"的地方都带了校验和（300000 条消息的和 = 44999850000，两种投递方式都命中同一个值）。
