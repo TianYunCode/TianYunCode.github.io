@@ -2,12 +2,17 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PostItem from '../components/PostItem.astro';
 import Pagination from '../components/Pagination.astro';
-import { getPosts } from '../utils/post';
+import { getPosts, postsInCategory } from '../utils/post';
+import { CATEGORIES } from '../data/categories';
 import { SITE } from '../config';
 
 const posts = await getPosts();
 const first = posts.slice(0, SITE.postsPerPage);
 const total = Math.ceil(posts.length / SITE.postsPerPage);
+const rails = CATEGORIES.map((category) => {
+  const covered = new Set(postsInCategory(posts, category.slug).map((post) => post.data.section).filter(Boolean));
+  return { category, covered: covered.size, total: category.sections.length };
+});
 ---
 
 <BaseLayout>
@@ -22,7 +27,27 @@ const total = Math.ceil(posts.length / SITE.postsPerPage);
     </a>
   </section>
 
+  <section class="rail" aria-labelledby="rail-title">
+    <div class="rail__head">
+      <h2 id="rail-title">专栏</h2>
+      <a class="rail__more" href="/categories/">全部专栏与章节地图 →</a>
+    </div>
+    <div class="rail__grid">
+      {
+        rails.map(({ category, covered, total: n }) => (
+          <a class="rail__item" href={`/categories/${category.slug}/`}>
+            <span class="rail__name">{category.title}</span>
+            <span class="rail__progress">
+              {covered} / {n}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
   <div class="post-list">
+    <h2 class="post-list__title">最新文章</h2>
     {first.map((post) => <PostItem post={post} />)}
   </div>
 

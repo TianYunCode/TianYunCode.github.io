@@ -1,0 +1,107 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CATEGORIES, LEVELS } from '../../data/categories';
+import { formatDate, getPosts, isoDate, postPath, postsBySection, postsInCategory } from '../../utils/post';
+
+export async function getStaticPaths() {
+  return CATEGORIES.map((category) => ({ params: { cat: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props as { category: (typeof CATEGORIES)[number] };
+const posts = await getPosts();
+const bySection = postsBySection(posts);
+const inCategory = postsInCategory(posts, category.slug);
+const covered = new Set(inCategory.map((post) => post.data.section).filter(Boolean));
+const index = CATEGORIES.findIndex((item) => item.slug === category.slug);
+const prev = CATEGORIES[index - 1];
+const next = CATEGORIES[index + 1];
+let counter = 0;
+---
+
+<BaseLayout title={category.title} description={category.summary} path={`/categories/${category.slug}/`}>
+  <nav class="crumb" aria-label="面包屑">
+    <a href="/categories/">专栏</a>
+    <span aria-hidden="true">/</span>
+    <span>{category.title}</span>
+  </nav>
+
+  <header class="cat-head">
+    <p class="cat-head__en">{category.en}</p>
+    <h1 class="cat-head__title">{category.title}</h1>
+    <p class="cat-head__summary">{category.summary}</p>
+    <div class="cat-head__stat">
+      <span class="cat-head__num">
+        <strong>{covered.size}</strong> / {category.sections.length}
+      </span>
+      <div class="progress progress--wide" role="img" aria-label={`已完成 ${covered.size} 节，共 ${category.sections.length} 节`}>
+        <span class="progress__bar" style={`width:${(covered.size / category.sections.length) * 100}%`} />
+      </div>
+      <span class="cat-head__note">
+        {inCategory.length > 0 ? `已发布 ${inCategory.length} 篇` : '章节地图先行，内容按进度填充'}
+      </span>
+    </div>
+  </header>
+
+  {
+    LEVELS.map((level) => {
+      const sections = category.sections.filter((section) => section.level === level);
+      if (sections.length === 0) return null;
+      return (
+        <section class="level-group" aria-labelledby={`level-${level}`}>
+          <h2 class="level-group__title" id={`level-${level}`}>
+            <span class="level-tag">{level}</span>
+            <span class="level-group__count">{sections.length} 节</span>
+          </h2>
+          {sections.map((section) => {
+            counter += 1;
+            const no = String(counter).padStart(2, '0');
+            const list = bySection.get(section.id) ?? [];
+            return (
+              <article class:list={['section-card', { 'section-card--empty': list.length === 0 }]} id={section.id}>
+                <div class="section-card__head">
+                  <span class="section-card__no">{no}</span>
+                  <h3 class="section-card__title">{section.title}</h3>
+                  {list.length === 0 && <span class="section-card__soon">敬请期待</span>}
+                </div>
+                <ul class="section-card__points">
+                  {section.points.map((point) => (
+                    <li>{point}</li>
+                  ))}
+                </ul>
+                {list.length > 0 && (
+                  <ol class="section-card__posts">
+                    {list.map((post) => (
+                      <li>
+                        <a href={postPath(post)}>{post.data.title}</a>
+                        <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </article>
+            );
+          })}
+        </section>
+      );
+    })
+  }
+
+  <nav class="cat-pager" aria-label="相邻专栏">
+    {
+      prev && (
+        <a href={`/categories/${prev.slug}/`} rel="prev">
+          <small>上一专栏</small>
+          <span>{prev.title}</span>
+        </a>
+      )
+    }
+    {
+      next && (
+        <a class="next" href={`/categories/${next.slug}/`} rel="next">
+          <small>下一专栏</small>
+          <span>{next.title}</span>
+        </a>
+      )
+    }
+  </nav>
+</BaseLayout>

@@ -3,6 +3,8 @@ title: 我每天真的只用这几条 Git 命令
 description: 抛开那些面试才用的招数，日常工作里 90% 的操作就五条命令，外加两个必须记住的救命招。
 date: 2026-09-26
 tags: [Git, 工程实践]
+category: engineering
+section: eng-git-basics
 ---
 
 工作里见过的 Git 教程，一半在讲怎么用 `git bisect` 定位引入 bug 的提交，另一半在讲 worktree。这些确实有用，但一天下来我真正敲的命令非常少。

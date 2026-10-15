@@ -1,13 +1,14 @@
 export const SITE = {
   title: '拾光集',
-  tagline: '一个人的技术笔记与生活记录',
+  tagline: 'C/C++、Qt、嵌入式与工程实践',
   description:
-    '记录后端、前端与工程实践中值得留下来的东西。基于 Astro 构建，部署在 GitHub Pages 上。',
+    '按章节地图推进的技术笔记：C 语言、C++、数据结构、并发、Qt 6、Windows/Win32、Linux、操作系统、网络、嵌入式、数据库、构建与调试。基于 Astro 构建，部署在 GitHub Pages。',
   author: 'wty',
   // 首页每页文章数
   postsPerPage: 8,
   nav: [
     { href: '/', label: '首页' },
+    { href: '/categories/', label: '专栏' },
     { href: '/tags/', label: '标签' },
     { href: '/archive/', label: '归档' },
     { href: '/about/', label: '关于' },

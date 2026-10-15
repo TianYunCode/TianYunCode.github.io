@@ -1,8 +1,11 @@
 ---
 import { formatDate, isoDate, readingMinutes, postPath, type Post } from '../utils/post';
+import { CATEGORY_MAP, SECTION_INDEX } from '../data/categories';
 
 const { post } = Astro.props as { post: Post };
 const minutes = readingMinutes(post.body ?? '');
+const category = post.data.category ? CATEGORY_MAP.get(post.data.category) : undefined;
+const section = post.data.section ? SECTION_INDEX.get(post.data.section)?.section : undefined;
 ---
 
 <article class="post-item">
@@ -14,6 +17,14 @@ const minutes = readingMinutes(post.body ?? '');
     <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
     <span class="meta__dot" aria-hidden="true"></span>
     <span>{minutes} 分钟阅读</span>
+    {
+      category && (
+        <a class="chip chip--cat" href={section ? `/categories/${category.slug}/#${section.id}` : `/categories/${category.slug}/`}>
+          {category.title}
+          {section && ` · ${section.title}`}
+        </a>
+      )
+    }
     {
       post.data.tags.map((tag) => (
         <a class="chip" href={`/tags/${encodeURIComponent(tag)}/`}>

@@ -2,10 +2,13 @@
 import BaseLayout from './BaseLayout.astro';
 import Giscus from '../components/Giscus.astro';
 import { SITE } from '../config';
+import { CATEGORY_MAP, SECTION_INDEX } from '../data/categories';
 import { formatDate, isoDate, postPath, readingMinutes, type Post } from '../utils/post';
 
 const { post, prev, next } = Astro.props as { post: Post; prev?: Post; next?: Post };
 const minutes = readingMinutes(post.body ?? '');
+const category = post.data.category ? CATEGORY_MAP.get(post.data.category) : undefined;
+const section = post.data.section ? SECTION_INDEX.get(post.data.section)?.section : undefined;
 const markdownHeadings = (post.body ?? '').match(/^#{2,3}\s+\S.*$/gm) ?? [];
 const hasToc = markdownHeadings.length >= 2;
 const jsonLd = {
@@ -41,6 +44,17 @@ const jsonLd = {
                 <span class="meta__dot" aria-hidden="true"></span>
                 <span>更新于 {formatDate(post.data.updated)}</span>
               </>
+            )
+          }
+          {
+            category && (
+              <a
+                class="chip chip--cat"
+                href={section ? `/categories/${category.slug}/#${section.id}` : `/categories/${category.slug}/`}
+              >
+                {category.title}
+                {section && ` · ${section.title}`}
+              </a>
             )
           }
           {

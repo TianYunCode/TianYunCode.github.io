@@ -60,3 +60,21 @@ export function tagCounts(posts: Post[]) {
 export function slugifyTag(tag: string) {
   return encodeURIComponent(tag.toLowerCase());
 }
+
+export function postsInCategory(posts: Post[], slug: string) {
+  return posts.filter((post) => post.data.category === slug);
+}
+
+// 章节内的文章按时间正序排列，符合"先写的先读"的学习顺序
+export function postsBySection(posts: Post[]) {
+  const map = new Map<string, Post[]>();
+  for (const post of posts) {
+    const section = post.data.section;
+    if (!section) continue;
+    const bucket = map.get(section);
+    if (bucket) bucket.push(post);
+    else map.set(section, [post]);
+  }
+  for (const list of map.values()) list.sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+  return map;
+}

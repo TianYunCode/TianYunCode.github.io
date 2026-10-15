@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../config';
+import { CATEGORIES } from '../data/categories';
 import { getPosts } from '../utils/post';
 
 const posts = await getPosts();
@@ -11,6 +12,13 @@ const posts = await getPosts();
   <div class="prose page-body">
     <p>
       这里是 {SITE.author} 的个人博客，主要记录 {SITE.tagline}。目前共 {posts.length} 篇。
+    </p>
+    <h2>内容怎么组织</h2>
+    <p>
+      文章按 <a href="/categories/">专栏</a> 组织：{CATEGORIES.length} 个大类（C 语言、C++、数据结构与算法、并发编程、Qt 6、
+      Windows/Win32、Linux 系统编程、操作系统原理、计算机网络、嵌入式、数据库、编译与构建、调试与性能、工程实践），
+      每个大类内部按「基础 → 进阶 → 高级」拆成若干章节，构成一张完整的学习地图。
+      还没写的章节会先占位显示「敬请期待」，写到哪填到哪。
     </p>
     <h2>这个站怎么搭的</h2>
     <ul>

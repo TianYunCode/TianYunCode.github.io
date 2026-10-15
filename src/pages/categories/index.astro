@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../../data/categories';
+import { getPosts, postsInCategory } from '../../utils/post';
+
+const posts = await getPosts();
+const cards = CATEGORIES.map((category) => {
+  const written = postsInCategory(posts, category.slug);
+  const done = new Set(written.map((post) => post.data.section).filter(Boolean));
+  const byLevel = (level: string) => category.sections.filter((s) => s.level === level).length;
+  return {
+    category,
+    written: written.length,
+    covered: done.size,
+    total: category.sections.length,
+    counts: {
+      基础: byLevel('基础'),
+      进阶: byLevel('进阶'),
+      高级: byLevel('高级'),
+    },
+  };
+});
+const totalSections = CATEGORIES.reduce((sum, c) => sum + c.sections.length, 0);
+const totalWritten = posts.filter((post) => post.data.section).length;
+---
+
+<BaseLayout
+  title="专栏"
+  description={`按大类组织的技术知识地图，共 ${CATEGORIES.length} 个大类、${totalSections} 个章节，从基础到高级。`}
+>
+  <h1 class="page-title">专栏</h1>
+  <p class="page-lead">
+    {CATEGORIES.length} 个大类、{totalSections} 个章节，按「基础 → 进阶 → 高级」排成一条可走的学习路线。
+    已写 {totalWritten} 节，其余章节先占位，写到哪填到哪。
+  </p>
+
+  <div class="cat-grid">
+    {
+      cards.map(({ category, written, covered, total, counts }) => (
+        <a class="cat-card" href={`/categories/${category.slug}/`}>
+          <div class="cat-card__top">
+            <span class="cat-card__en">{category.en}</span>
+            <span class="cat-card__count">
+              {covered} / {total} 节
+            </span>
+          </div>
+          <h2 class="cat-card__title">{category.title}</h2>
+          <p class="cat-card__summary">{category.summary}</p>
+          <div class="cat-card__levels">
+            {Object.entries(counts).map(
+              ([level, n]) =>
+                n > 0 && (
+                  <span class="level-tag">
+                    {level} {n}
+                  </span>
+                )
+            )}
+          </div>
+          <div class="progress" role="img" aria-label={`已完成 ${covered} 节，共 ${total} 节`}>
+            <span class="progress__bar" style={`width:${total ? (covered / total) * 100 : 0}%`} />
+          </div>
+          <p class="cat-card__foot">
+            {written.length > 0 ? `${written.length} 篇文章` : '内容筹备中'} · 查看章节地图 →
+          </p>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>
