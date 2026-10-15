@@ -4,7 +4,10 @@ export type Post = Awaited<ReturnType<typeof getPosts>>[number];
 
 export async function getPosts() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
-  return posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  // 同一天发布的文章按文件名升序，保证系列文章的先后顺序稳定
+  return posts.sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf() || a.id.localeCompare(b.id)
+  );
 }
 
 export const postPath = (post: Post) => `/posts/${post.id}/`;
