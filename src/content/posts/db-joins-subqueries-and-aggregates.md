@@ -257,7 +257,7 @@ NULL 参与运算的原样输出：
      90   | Fay | 3000
 ```
 
-同一条 SQL 在 MySQL（`ONLY_FULL_GROUP_BY` 默认开）里是 **报错**，在开了老模式时会给你一个不保证的行。**这是"在 SQLite 上跑得好好的，搬到 MySQL 直接 1055"的头号来源。** 想要"每组里工资最高的那个人的名字"，正确写法是窗口函数（第四节）或相关子查询，不是裸列。
+同一条 SQL 在 MySQL 上（`ONLY_FULL_GROUP_BY` 默认开启）会报错、关掉之后给你一个不保证的行——**本机无 MySQL，这一句是文档层面的提醒，未在本机验证**。**这是"在 SQLite 上跑得好好的，搬到 MySQL 直接 1055"的头号来源。** 想要"每组里工资最高的那个人的名字"，正确写法是窗口函数（第四节）或相关子查询，不是裸列。
 
 `max()` 和裸列同时出现时，本例**碰巧**对上了（`10 | 5000 | Ann`）：
 
@@ -465,7 +465,7 @@ B9   56.818 ms -> 5.727 ms（4.500–6.463）      <- 10 倍
      SCAN customers USING COVERING INDEX idx_cust_city
 ```
 
-**没有 `USE TEMP B-TREE FOR GROUP BY` 了**——索引本身就是有序的，分组和排序一起省掉。对比第八节前 `B9` 无索引时那句 `USE TEMP B-TREE FOR GROUP BY`，这就是"聚合列建索引"的全部原理。
+**没有 `USE TEMP B-TREE FOR GROUP BY` 了**——索引本身就是有序的，分组和排序一起省掉。对比第八节里 `B9` 无索引计划中那句 `USE TEMP B-TREE FOR GROUP BY`，这就是"聚合列建索引"的全部原理。
 
 ## 十、视图不是物化的，深分页是线性的
 
@@ -533,7 +533,7 @@ amount 建索引后 offset=50000                       0.393 ms（0.378–0.407�
 - **`LEFT JOIN` 的过滤条件留在 `ON`**：`ON` 里 1364 行、`WHERE` 里 1008 行，写错就把外连接变成内连接，不报错。
 - **`NULL` 不进比较**：`<> 10` 少一行、`> 0` 少一行、`IS NOT 10` 才对（4 行）；**`NOT IN` 的子查询里只要有一个 NULL，结果恒为空**（实测 7 → 0）。反连接用 `NOT EXISTS`（正确且有索引后 0.549 ms）。
 - **聚合函数各有各的 NULL 规则**：`count(*)=7` / `count(col)=6`；`count(distinct)` 和 `sum` 丢 NULL；**`avg` 的分母是 6**；空集上只有 `count`→0 和 `total`→0，其余全 NULL；`1/0`、`7%0`、`cast('abc' as integer)` 分别给 NULL / NULL / **0**，一律不报错。
-- **`GROUP BY` 的裸列在 SQLite 不报错、在 MySQL 报错**，`NULL` 自成一组但被 `DISTINCT` 丢弃，`HAVING` 可以引用 `SELECT` 别名。**"每组 Top-1"请用窗口函数，不要用 `max()` + 裸列。**
+- **`GROUP BY` 的裸列在 SQLite 不报错**（MySQL 默认 sql_mode 下会报错，**该报错原文未在本机实测**），`NULL` 自成一组但被 `DISTINCT` 丢弃，`HAVING` 可以引用 `SELECT` 别名。**"每组 Top-1"请用窗口函数，不要用 `max()` + 裸列。**
 - **等价写法的实测差 3.8 倍**（10 万行无索引：`IN` 10.3 ms / `JOIN` 25.3 ms / `EXISTS` 36.3 ms / 标量子查询 39.6 ms / `LEFT JOIN` 反连接 75.9 ms），根因写在计划里：`CORRELATED SCALAR SUBQUERY` 是逐行执行，索引治不了次数。
 - **索引可能让查询慢 6.0 倍**（B11：9.65 → 57.78 ms），因为缺的那一列导致 10 万次回表；把索引做成覆盖索引后同一条变 3.29 ms。**加索引前先 `EXPLAIN QUERY PLAN`，看有没有 `USING INDEX` 之后还要回表的 SEARCH。**
 - **深分页用键集分页**（3.4 倍），或给排序列建索引（134 倍）；`OFFSET` 的代价是线性的，因为它真的在逐行丢弃。

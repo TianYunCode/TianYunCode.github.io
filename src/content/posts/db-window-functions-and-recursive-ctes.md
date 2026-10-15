@@ -80,7 +80,21 @@ section: db-advanced-sql
 - **`row_number()` 强制给唯一序号**：id 1 和 id 2 的 `v` 都是 10，rn 仍是 5 和 6。谁在前由排序键的**并列内部顺序**决定，本例没写次级排序键，所以这个先后是**不保证的**。要做"每组 Top-N"必须在排序键后面补一个唯一列（`order by amount desc, id`），否则同一秒两条记录的先后可能随计划变。
 - **`rank()` 并列同号并且跳号**：v=10 两行都是 5，下一档 v=20 直接跳到 7（6 被吃掉）。
 - **`dense_rank()` 并列同号但不跳号**：10 → 4，20 → 5。
-- **`NULL` 在升序里排最前**：id 4 的 `v` 是 NULL，`order by v` 给它 rn=1 / rk=1。**要 NULL 排最后必须显式写 `ORDER BY v IS NULL, v`**（SQLite 没有 `NULLS LAST` 语法，本节未实测该关键字；MySQL 的 `NULLS LAST`、PostgreSQL 的 `NULLS LAST` **未在本机实测**）。
+- **`NULL` 在升序里排最前**：id 4 的 `v` 是 NULL，`order by v` 给它 rn=1 / rk=1。要 NULL 排最后，本机 `SQLite 3.50.4` 上 `NULLS LAST` **是能用的**（专门开了一个探针 `p9_nulls.cpp`，表 `s(id,v) = (1,10),(2,NULL),(3,5),(4,NULL)`）：
+
+```text
+  Q> select v, v from s order by v                 -> NULL NULL 5 10
+  Q> select v, v from s order by v nulls last      -> 5 10 NULL NULL
+  Q> select v, v from s order by v nulls first     -> NULL NULL 5 10
+  Q> select v, v from s order by v is null, v      -> 5 10 NULL NULL   （等价的老写法）
+  Q> select v, v from s order by v desc            -> 10 5 NULL NULL   <- 降序时 NULL 也排最后
+  Q> select v, v from s where v > 5 nulls last
+   FAIL> near "nulls": syntax error Unable to execute statement
+  Q> select v, v from s order by v fetch first 2 rows only
+   FAIL> near "fetch": syntax error Unable to execute statement
+```
+
+三条一次性结论：**`NULLS FIRST/LAST` 在 `ORDER BY` 里合法**（"SQLite 不支持这两个关键字"是个常见假设，本机这条实测把它推翻了）；**它在 `WHERE` 里非法**（`NULLS` 不是过滤关键字，报错原文 `near "nulls": syntax error`）；**`FETCH FIRST n ROWS ONLY` 这条 SQL 标准分页语法 SQLite 不认**，只有 `LIMIT n OFFSET m`（上一篇《查询》第十节讲过它的深分页代价）。注意 `DESC` 时 NULL 也在末尾——SQLite 把 NULL 当"最小值"参与排序，升降序都会把它推到尾部之外，**想要"降序且 NULL 在最前"必须显式 `NULLS FIRST`**。
 
 `percent_rank` / `cume_dist` / `ntile` 的定义可以用这张表验证（A 组 7 行，n=7）：
 
@@ -256,7 +270,7 @@ section: db-advanced-sql
      7  | 40   | 20   | 20   | 20   | NULL | 20
 ```
 
-三点：首行 `lag` 是 NULL（**不是 0**），要 0 就写第三参 `lag(v,1,0)`；`v - lag(v)` 让整列差分从第 2 行起才有值，**"增长率"报表第一行必然是 NULL，导出前 `coalesce`**；id 3 的 `f1` 是 NULL 而不是下一行 id 4 的值——那是最后一行。
+三点：首行 `lag` 是 NULL（**不是 0**），要 0 就写第三参 `lag(v,1,0)`（`l0` 列首格就是 0）；`v - lag(v)` 让整列差分从第 2 行起才有值，**"增长率"报表第一行必然是 NULL，导出前 `coalesce`**；`f1`（`lead`）在 id 3 那格是 NULL，**但那不是"没有下一行"，而是下一行（id 4）的 `v` 本身就是 NULL**——真正越界的是 id 7，它的 `f1` 同样是 NULL。**"下一行是空值"和"没有下一行"在结果里长得一模一样**，`lag`/`lead` 本身分不开，得再配一个 `count(*) over (order by id rows between 1 following and unbounded following)` 才认得出。id 4 那格的 `diff` 也是 NULL（上一篇《查询》第四节那条 `NULL` 不吃比较的规则，在窗口里同样成立）。
 
 还有一个把窗口当计数器用的写法，实测正确：
 
@@ -661,12 +675,12 @@ where r.id = orders.id;
 - **窗口函数不能进 `WHERE`**：本文的 `misuse of window function row_number()` 是 SQLite 原文；MySQL/PostgreSQL 的错误码与措辞不同（PG 是 `Windows functions are not allowed in WHERE` 一类）——**未在本机实测**。
 - **`WITH RECURSIVE`**：三家的关键字都要求写 `RECURSIVE`（SQLite 不写会当成普通 CTE 并报错），但**深度限制、`CYCLE ... SET` 子句（PostgreSQL 14+/Oracle）、MySQL 的 `cte_max_recursion_depth` 默认 1000** 这类护栏参数**全部未在本机实测**。本文第九节"环会挂死、要自己加 `lvl` 上限"的结论在 SQLite 上是实测的；在有默认深度上限的引擎上，同一条 SQL 会变成"到深度就报错"，**这是两种不同的故障表现，必须各测一次**。
 - **`generate_series`**：PostgreSQL 是内建表值函数，SQLite 本机没有（`no such table`）——**MySQL 侧无对应物，未实测。**
-- **`NULLS LAST` / `ORDER BY v IS NULL, v`**：SQLite 本机不支持 `NULLS LAST` 关键字（本文未逐条复测原文），第二节用的 `IS NULL` 前置排序技巧是标准做法但在 MySQL 上更常见的写法是 `ISNULL(v)`——**未在本机实测。**
+- **`NULLS FIRST` / `NULLS LAST` 与 `FETCH FIRST n ROWS ONLY`**：SQLite 本机 3.50.4 实测**支持** `NULLS FIRST/LAST`（见第二节末尾 `p9_nulls.cpp` 的原文，含 `WHERE` 里误用时的 `near "nulls": syntax error`），**不支持** 标准的 `FETCH FIRST ... ROWS ONLY`（`near "fetch": syntax error`）。MySQL 对这两个关键字的支持情况、PostgreSQL 的 `FETCH FIRST` / `NULLS ONLY` 语义——**均未在本机实测**，不要把 SQLite 这条结论当通用规则。
 - **`CTE 物化时机`**：PostgreSQL 12+ 才有 `MATERIALIZED / NOT MATERIALIZED` 提示，之前的 CTE 总物化；MySQL 8.0 的 CTE 合并/物化策略与本文第十节完全不同——**必须实测，不能照搬。**
 
 ## 十三、小结
 
-- **`row_number` / `rank` / `dense_rank` 的区别只在并列**：10 万行实测"每组前 3"给 **3000 / 3008 / 3000**，`JOIN max` 只给 **1006**。排序键**必须以唯一列收尾**（`order by amount desc, id`），否则并列行的先后不保证。
+- **`row_number` / `rank` / `dense_rank` 的区别只在并列**：10 万行实测"每组前 3"，`row_number` 给 **3000**、`rank` 给 **3008**，`JOIN max` 只给 **1006**（`dense_rank` 的前 3 未跑，它在小表上的名次规则见第二节）。排序键**必须以唯一列收尾**（`order by amount desc, id`），否则并列行的先后不保证。
 - **`NULL` 在 `ORDER BY` 里最小、在 `>` 比较里谁都不大于**：第六节那个把 NULL 塞进 Top-2 的自连接写法就是这么坏的；NULL 排末位要自己写 `IS NULL` 前置键。
 - **默认帧是 `RANGE`，不是 `ROWS`**——同一时间戳的并列行会一起进入累计，实测 10 万行里 **99900 行**的累计和两种帧算出的值不同；把 `, id` 加进排序键后差异归零。**写累计列请显式 `ROWS UNBOUNDED PRECEDING`。**
 - **`last_value` 默认帧右端是当前行**，所以它等于"本行自己"，取真末值必须写全帧。`lag` 首行是 NULL 不是 0（要 0 用第三参），差分报表第一行必空。
