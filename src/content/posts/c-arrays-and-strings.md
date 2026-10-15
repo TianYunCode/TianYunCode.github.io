@@ -233,7 +233,9 @@ raw[3] = 999;              /* 越界：arr 只有 3 个元素 */
 
 `guard` 恰好排在 `arr` 后面 12 字节，也就是 `arr[3]` 的位置，于是它被无声地改成了 999。**程序没有崩，没有报错，只是某个变量的值从此不对了**——这就是越界最典型的破坏形式：症状出现在离病因很远的地方。
 
-那编译器能帮忙抓吗？本机实测的答案是：抓不到。
+那编译器能帮忙抓吗？本机实测的结论是**部分能抓，但不能指望**。
+
+抓不到的例子（写越界后再读回同一个位置）：
 
 ```text
 gcc -std=c17 -Wall -Wextra -O2 p9a.c        → 无输出
@@ -241,7 +243,13 @@ gcc -std=c17 -Wall -Wextra -O2 -Warray-bounds=2 p9a.c  → 无输出
 gcc -std=c17 -O1 -fanalyzer p9a.c           → 无输出
 ```
 
-对一个**字面量下标**的越界写，`-Wall -Wextra`、`-Warray-bounds=2` 甚至 GCC 的静态分析器 `-fanalyzer` 都没报。想靠编译器兜底是不现实的。
+抓得到的例子（直接读越界下标）：
+
+```text
+warning: array subscript 2 is above array bounds of 'int[2]' [-Warray-bounds=]
+```
+
+同一个 `-Warray-bounds`，一个沉默一个报错——差别在于常量折叠后编译器"看不看穿"那次写。**所以：编译器没报，不等于没有越界。** 想真正确认，只有 sanitizer 或人工审查。
 
 工具链层面还有 ASAN，但本机这个 MinGW 构建**不带 sanitizer 运行时**：
 
