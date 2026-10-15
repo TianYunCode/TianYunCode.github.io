@@ -38,7 +38,7 @@ section: db-advanced-sql
      row_number | 0
 ```
 
-上面 13 个名字里回回来 11 个（`lag`/`lead` 各 3 种元数，共 15 行），第三参是补位默认值。没回来的是 `generate_series` 和 `json_each`——后者是表值函数，不在这张视图里，本文未复核。**`generate_series` 是真缺**：
+上面 13 个名字里回来 11 个（`lag`/`lead` 各 3 种元数，共 15 行），第三参是补位默认值。没回来的是 `generate_series` 和 `json_each`——后者是表值函数，不在这张视图里，本文未复核。**`generate_series` 是真缺**：
 
 ```text
   Q> select count(*) from generate_series(1,100)
@@ -210,7 +210,7 @@ section: db-advanced-sql
 
 ## 五、EXCLUDE、`last_value`、`lag`/`lead`
 
-帧内排除（`EXCLUDE CURRENT ROW` / `EXCLUDE GROUP` / `EXCLUDE TIES` / `EXCLUDE NO OTHERS`）实测可用：
+帧内排除实测可用（本文只跑了 `EXCLUDE CURRENT ROW` 和 `EXCLUDE NO OTHERS` 两种，`EXCLUDE GROUP` / `EXCLUDE TIES` **未实测**）：
 
 ```text
      id | v    | s3 | s2  | sall | arng
@@ -484,6 +484,8 @@ section: db-advanced-sql
 ```
 
 **正常终止，只产出 2 行。** 代价是多带一个 `seen` 字符串列，每跳一次拼接一次并做一次 `instr`——树很深时这一列本身就是 O(深度²) 的字符串，权衡见本节末尾的传递闭包写法。
+
+**把 `where t.lvl<6` 这个护栏去掉，同一条 SQL 就不再返回了**——用外层 `timeout 40` 杀进程：
 
 ```text
   Q> with recursive t(id,name) as (select id,name from node where name='cyc-a'

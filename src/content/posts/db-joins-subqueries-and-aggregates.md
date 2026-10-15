@@ -124,7 +124,7 @@ B13 INNER JOIN 同条件        select count(*) from customers c join orders o o
   Q> select count(*) is_not from emp where dept_id is not 10      -> 4
 ```
 
-`<> 10` 得 3，正确答案是 4（20、20、90 再加上那个 NULL）。**任何 `<>` / `>` / `LIKE` 都会把 NULL 行丢掉**，因为比较结果是 NULL 而不是真。三种修法实测都行：`OR dept_id IS NULL`、`IS NOT 10`（SQLite 的中缀 `IS NOT` 是**空安全**的）、或者第一节的 `COALESCE`。
+`<> 10` 得 3，正确答案是 4（20、20、90 再加上那个 NULL）。**任何 `<>` / `>` / `LIKE` 都会把 NULL 行丢掉**，因为比较结果是 NULL 而不是真。三种修法实测都行：`OR dept_id IS NULL`、`IS NOT 10`（SQLite 的中缀 `IS NOT` 是**空安全**的）、或者第五节的 `COALESCE`。
 
 NULL 参与运算的原样输出：
 
@@ -545,7 +545,7 @@ amount 建索引后 offset=50000                       0.393 ms（0.378–0.407�
 - **`RIGHT JOIN` / `FULL JOIN`**：MySQL 支持 `RIGHT JOIN` 但**不支持 `FULL OUTER JOIN`**（要用 `UNION` 两段 LEFT JOIN 拼）；PostgreSQL 两者都支持——**未在本机实测**。
 - **`GROUP BY` 裸列**：MySQL 5.7+ 默认 `ONLY_FULL_GROUP_BY`，第六节那条 SQL 在 MySQL 上是 `ERROR 1055`；SQLite 的 `min/max + 裸列` 特殊行为在 MySQL 里没有对应实现——**未在本机实测**。
 - **`HAVING` 引用 `SELECT` 别名**：MySQL 允许（且有额外的 `NULL`/表达式规则），**标准 SQL 与 PostgreSQL 不允许在 `HAVING` 里引用 `SELECT` 别名**（PostgreSQL 可写 `GROUP BY` 表达式或 CTE）——**未在本机实测**。
-- **`UNION` 与 NULL**：第八节提到的"SQLite 的 `UNION` 保留一个 NULL、`DISTINCT` 丢 NULL"的不一致，在其它引擎上如何表现**未在本机实测**，请勿把本文那条当通用结论。
+- **`UNION` 与 NULL**：第七节提到的"SQLite 的 `UNION` 保留一个 NULL、`DISTINCT` 丢 NULL"的不一致，在其它引擎上如何表现**未在本机实测**，请勿把本文那条当通用结论。
 - **`IS NOT <值>` 的空安全比较**：SQLite 的中缀 `IS`/`IS NOT` 可对普通值使用，MySQL 只有 `IS NOT NULL` 形态，PostgreSQL 用 `IS DISTINCT FROM`——**未在本机实测**。
 - **`ANY` / `SOME`**：MySQL/PostgreSQL 支持 `= ANY (subquery)`，SQLite 报 `near "select": syntax error`（这一条是本机实测的原文）——**其它两家的原文未实测**。
 - **`AUTOMATIC COVERING INDEX` 与 `BLOOM FILTER`** 是 SQLite 优化器独有的行为，`EXPLAIN QUERY PLAN` 的整个格式都无法搬到 MySQL 的 `EXPLAIN` 或 PostgreSQL 的 `EXPLAIN (ANALYZE)`——**第八、九节那张表不能照搬，必须重跑**。
