@@ -43,7 +43,7 @@ comment: true            # 可选，false 关闭本页评论
 
 ## 部署（已配好）
 
-线上地址：<https://tianyuncode.github.io/>　仓库：`TianYunCode/TianYunCode.github.io`（根站仓库，所以 URL 没有路径前缀）。
+线上地址：<https://wty.blogs.abrdns.com/>（`tianyuncode.github.io` 会 301 跳过来）　仓库：`TianYunCode/TianYunCode.github.io`（根站仓库，所以 URL 没有路径前缀）。
 Pages 的 Source 已设为 **GitHub Actions**，流水线是 `.github/workflows/deploy.yml`。
 
 日常只需要：
@@ -60,7 +60,7 @@ git push
 ## 自定义域名（以后要加的时候）
 
 1. 改 `astro.config.mjs` 里的 `site`（**只改这一行**，RSS / sitemap / OG 链接全部由它派生）。
-2. 新建 `public/CNAME`，内容只有一行域名，不带 `https://` 和斜杠，例如：`blog.tianyuncode.com`。
+2. 已完成：`public/CNAME` 内容为 `wty.blogs.abrdns.com`，换域名时改这一行 + `astro.config.mjs` 的 `site`。
 3. 在 DNS 服务商加记录：
    - 子域名（推荐，`blog.xxx.com`）：`CNAME` → `tianyuncode.github.io.`
    - 裸域名（`xxx.com`）：四条 `A` 记录 → `185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`
