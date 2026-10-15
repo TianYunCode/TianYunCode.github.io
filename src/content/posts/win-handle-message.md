@@ -89,19 +89,13 @@ EnumProcesses 进程数=561 可查句柄数=367 句柄合计=824126 平均=2319.
   起点（1 个窗口类） 内核句柄=100  USER=1      GDI=0
   CreateWindowExW 第 1 次失败: lasterr=1158 "当前程序已使用了 Window 管理器对象的系统允许的所有句柄。"
   成功创建窗口 9998 个
-  窗口建满后        内核句柄=133  USER=10000  GDI=0
-  销毁一半窗口      内核句柄=133  USER=5001   GDI=0     → 又能建 4999 个
-  GetDC(NULL) 之后  内核句柄=133  USER=10000  GDI=1
+  窗口建满后        内核句柄=133  USER=10000  GDI=0    → 销毁一半：USER=5001，又能建 4999 个
   CreatePen 第 1 次失败: lasterr=0 "操作成功完成。"
   成功创建 GDI 画笔 9999 支
-  GDI 建满后        内核句柄=197  USER=10000  GDI=10000
-  全部 DeleteObject 后 内核句柄=197 USER=10000 GDI=1   → 又能建 9999 支
+  GDI 建满后        内核句柄=197  USER=10000  GDI=10000 → 全部 DeleteObject 后 GDI=1，又能建 9999 支
 ```
 
-1. **USER 与 GDI 各 10000/进程**，`GetGuiResources` 读的就是这两张表。
-2. **GDI 耗尽时 `CreatePen` 返回 NULL 而 `GetLastError()=0`**（"操作成功完成"）。`if(!h) err(GetLastError())` 这条标准写法对 GDI 完全失效。
-3. 建 9998 个窗口，内核句柄只从 100 涨到 133；建 9999 支画笔涨到 197。**USER/GDI 基本不占内核句柄**，所以"句柄数正常"根本排除不了 UI 资源泄漏——三个数要分开盯（这正是任务管理器"句柄数/对象数"两列的来源）。
-4. `DestroyWindow`/`DeleteObject` 归还立刻可见（10000→5001、10000→1）。
+**USER 与 GDI 各 10000/进程**，`GetGuiResources` 读的就是这两张表；`DestroyWindow`/`DeleteObject` 归还立刻可见。最反直觉的一条：**GDI 耗尽时 `CreatePen` 返回 NULL，而 `GetLastError()` 是 0**（"操作成功完成"）——`if(!h) err(GetLastError())` 这条标准写法对 GDI 完全失效，只能靠返回值判 NULL。另一条：建 9998 个窗口内核句柄只从 100 涨到 133，建 9999 支画笔涨到 197，**USER/GDI 基本不占内核句柄**，所以"句柄数正常"排除不了 UI 资源泄漏，三个数要分开盯（这就是任务管理器"句柄数/对象数"两列的来源）。GDI 对象的泄漏与 DC 成本第二节细量。
 
 ## 五、CreateWindowExW 期间 WndProc 已被回调 4 次
 
@@ -122,15 +116,7 @@ WM_SHOWWINDOW → WM_WINDOWPOSCHANGING → WM_WINDOWPOSCHANGING → WM_ACTIVATEA
 → WM_SETFOCUS → WM_NCPAINT → WM_ERASEBKGND → WM_WINDOWPOSCHANGED → WM_SIZE → WM_MOVE
 ```
 
-`WM_WINDOWPOSCHANGING` **连发两次**，`WM_SIZE`/`WM_MOVE` 排在最后——"先收到 SIZE 再显示"的假设不成立。`WM_IME_*` 每次激活都来，`WM_GETOBJECT` 是无障碍/UIA 在问话（本机每次 ShowWindow 固定 2 条）。`UpdateWindow` 只给 **1 条 WM_PAINT**（在调用栈上，`BeginPaint` 报 `rcPaint=(0,0)-(394,271) erase=0`）；`InvalidateRect` 交给消息循环时是 5 条（多了 `WM_DWMNCRENDERINGCHANGED`、一个未公开的 `0xc378`、以及 `WM_GETICON`）。`DestroyWindow`：
-
-```text
-  #0 +0.0 us    0x0090?       ← MinGW winuser.h 的 251 条 WM_ 名字表里查不到（UAH 内部通知）
-  #1 +468.6 us  WM_DESTROY
-  #2 +9161.9 us WM_NCDESTROY
-```
-
-`WM_DESTROY` 与 `WM_NCDESTROY` 之间是释放本窗口 GDI 对象的最后时机。
+`WM_WINDOWPOSCHANGING` **连发两次**，`WM_SIZE`/`WM_MOVE` 排在最后——"先收到 SIZE 再显示"的假设不成立。`WM_IME_*` 每次激活都来，`WM_GETOBJECT` 是无障碍/UIA 在问话（本机每次 ShowWindow 固定 2 条）。`UpdateWindow` 只给 **1 条 WM_PAINT**（在调用栈上，`BeginPaint` 报 `rcPaint=(0,0)-(394,271) erase=0`）；`InvalidateRect` 交给消息循环时是 5 条（多了 `WM_DWMNCRENDERINGCHANGED`、一个未公开的 `0xc378`、以及 `WM_GETICON`）。`DestroyWindow` 给 3 条：`0x0090`（+0.0µs，MinGW `winuser.h` 的 251 条 WM_ 名字表里查不到，是 UAH 内部通知）→ `WM_DESTROY`（+468.6µs）→ `WM_NCDESTROY`（+9161.9µs），后两者之间是释放本窗口 GDI 对象的最后时机。
 
 ## 六、Post 与 Send：56 纳秒 vs 27.8 微秒
 
@@ -143,8 +129,8 @@ WM_SHOWWINDOW → WM_WINDOWPOSCHANGING → WM_WINDOWPOSCHANGING → WM_ACTIVATEA
 | `PostMessageW` 跨线程窗口 | 17053 ns | 15723 – 33133 |
 | `SendMessageW` 跨线程窗口 | **27818 ns** | 16835 – 42312 |
 
-- 同线程 `SendMessage` 就是**一次直接函数调用**（56ns，和 `std::mutex` 无竞争加锁同量级），不入队。
-- 跨线程 `SendMessage` = 唤醒成本 + 等回音，**是同线程的 493 倍**，与《线程与进程模型》量到的"一次条件变量唤醒交接 11.35µs"同源。
+- 同线程 `SendMessage` 就是**一次直接函数调用**（56ns，与 `std::mutex` 无竞争加锁同量级），不入队。
+- 跨线程 `SendMessage` = 唤醒成本 + 等回音，**是同线程的 493 倍**，与《线程与进程模型》量的"一次条件变量唤醒交接 11.35µs"同源。
 - 同线程 `PostMessage` 也要 1.4µs：队列是 USER32 与 win32k 共享的结构，入队从来不免费。
 
 `PostMessageW(NULL,...)` 是线程消息，实测进**调用线程自己的队列**（`成功 9999 次 lasterr=1816`，A 线程排空 10000 条）；而 `SendMessageW(NULL,...)` 直接失败：`返回=0 lasterr=1400`，两个线程的 WndProc 一次都没被调用。这个区别救过一次误判——我最初版探针忘了给事件句柄赋值，`WaitForSingleObject` 返回 `4294967295`（WAIT_FAILED）却没检查，主线程于是读到工作线程的 `hwnd` 仍是 0，"跨线程 SendMessage 不重入"的假结论全部来自那次静默失败。**先打印同步原语自身的返回值，再谈 API 行为。**
@@ -154,17 +140,12 @@ WM_SHOWWINDOW → WM_WINDOWPOSCHANGING → WM_WINDOWPOSCHANGING → WM_ACTIVATEA
 ```text
 同一个窗口：成功投递 10000 条后 PostMessageW 开始失败，lasterr=1816 "配额不足，无法处理此命令。"
 紧接着往同线程的另一个窗口投递：成功 0 条，lasterr=1816
-```
-
-上限是**每线程 10000 条**，与窗口无关。UI 线程被长任务卡死时，别人只能投进 1 万条，之后 `PostMessage` 静默失败——这就是"后台通知 UI，UI 卡住后通知丢了"的机制。要可靠就别用消息队列，换事件/IOCP 或带重试的管道。
-
-```text
 先排空，再投 5 条 WM_NULL + 1 条 WM_USER+9；PeekMessage 取到 6 条，其中 WM_NULL 5 条
 PM_NOREMOVE 两次=1,1；PM_REMOVE 两次=1,0
 空队列时 GetQueueStatus(QS_ALLINPUT)=0x00100000 低16=0 高16=0x10
 ```
 
-`WM_NULL` **会被正常取出**（"系统吞掉 WM_NULL"的说法在 `PeekMessage` 路径上不成立）；`PM_NOREMOVE` 真的不摘；`GetQueueStatus` 低 16 位是"请求且已置位"的 flags，高 16 位是队列里出现过的类别并集。重入实测：A `Send(hB,100)` → B 的 handler `Send(hA,101)` → A 的 handler 再 `Send(hB,200)`：
+上限是**每线程 10000 条**，与窗口无关：UI 线程被长任务卡死时，别人只能投进 1 万条，之后 `PostMessage` 静默失败——这就是"后台通知 UI、UI 卡住后通知丢了"的机制，要可靠就换事件/IOCP 而不是消息队列。`WM_NULL` **会被 `PeekMessage` 正常取出**（"系统吞掉 WM_NULL"在 Peek 路径上不成立）；`PM_NOREMOVE` 真的不摘；`GetQueueStatus` 低 16 位是"请求且已置位"的 flags，高 16 位是队列里出现过的类别并集。重入实测：A `Send(hB,100)` → B 的 handler `Send(hA,101)` → A 的 handler 再 `Send(hB,200)`：
 
 ```text
 [B] 收到 A 的 SendMessage(WM_USER+100)，深度=1 → 我回手 SendMessage(A, WM_USER+101)
@@ -190,10 +171,8 @@ SMTO_ABORTIFHUNG + 500ms：返回=FALSE 用时=513.2 ms lasterr=1460 "由于超�
 ```text
 带 -DUNICODE  ：CreateEvent==CreateEventW ? 1  ==CreateEventA ? 0   sizeof(TCHAR)=2
 不带 -DUNICODE：CreateEvent==CreateEventW ? 0  ==CreateEventA ? 1   sizeof(TCHAR)=1
-GetProcAddress("CreateEvent    ") = 0000000000000000
-GetProcAddress("CreateEventW   ") = 00007ffa31436e80
-GetProcAddress("CreateWindowEx ") = 0000000000000000
-GetProcAddress("CreateWindowExW") = 00007ffa3209c110
+GetProcAddress("CreateEvent   ") = 0     GetProcAddress("CreateEventW")    = 00007ffa31436e80
+GetProcAddress("CreateWindowEx") = 0     GetProcAddress("CreateWindowExW") = 00007ffa3209c110
 ```
 
 `UNICODE` 是**纯编译期宏**。手工解析 PE 导出表：
@@ -201,36 +180,27 @@ GetProcAddress("CreateWindowExW") = 00007ffa3209c110
 ```text
 kernel32 导出 1697 个具名函数：A 结尾 264，W 结尾 293，其余 1140；A/W 成对 264 组
 user32   导出 1050 个具名函数：A 结尾 149，W 结尾 152，其余 749；A/W 成对 147 组
-只有 W 版的（kernel32 共 27 个）：FindFirstStreamW  FindFirstFileNameW
-  FindNextFileNameW  FindNextStreamW  GetVolumeInformationByHandleW  DnsHostnameToComputerNameExW …
+只有 W 版、没有 A 版的 27 个里含：FindFirstStreamW FindFirstFileNameW FindNextStreamW
+  GetVolumeInformationByHandleW DnsHostnameToComputerNameExW …
 ```
 
 `FindFirstStreamW`（枚举 NTFS 备用数据流）这类**从来没有 ANSI 版本**，写 `FindFirstStreamA` 只会得到 `undefined reference`。**转换本身极便宜，贵的是别的**（7 轮中位）：
 
 ```text
-MultiByteToWideChar(CP_ACP) 14 字节  43.8 ns（39.4–92.1）   WideCharToMultiByte 9 字符 32.1 ns（31.3–35.8）
-SetWindowTextW（隐藏，ASCII）187.3 µs（104.5–348.6）        SetWindowTextA（隐藏，ASCII）253.2 µs（173.9–351.3）
+MultiByteToWideChar(CP_ACP) 14 字节 43.8 ns（39.4–92.1）  WideCharToMultiByte 9 字符 32.1 ns（31.3–35.8）
+SetWindowTextW（隐藏，ASCII）187.3 µs（104.5–348.6）      SetWindowTextA（隐藏，ASCII）253.2 µs（173.9–351.3）
 ```
 
-`SetWindowText` 的单价是转换的 **4000 倍**，A/W 差值完全被重绘噪声吃掉（区间大幅重叠）。要优化的是**调用次数**，不是字符集。代码页语义（本机 ACP=936）：
+`SetWindowText` 的单价是转换的 **4000 倍**，A/W 差值完全被重绘噪声吃掉（区间大幅重叠）——要优化的是**调用次数**，不是字符集。代码页语义（本机 ACP=936），以及把 `activeCodePage=UTF-8` 写进 exe 的资源 ID 24（RT_MANIFEST）重链之后——**没动任何系统设置**：
 
 ```text
-U+2603 经 CP_ACP -> 2 字节：3f 20   UsedDefaultChar=1        ← 雪人被换成 '?'
-CreateFileW(中文路径)      = 0x68 lasterr=0
-CreateFileA(GBK 字节名)    = 0x68 lasterr=0
-CreateFileA(UTF-8 字节名)  = INVALID lasterr=2 "系统找不到指定的文件。"
+ACP=936  ：U+2603→"3f 20"（UsedDefaultChar=1，雪人被换成 '?'）
+           CreateFileW(中文)=0x68 ok   CreateFileA(GBK 字节名)=0x68 ok   CreateFileA(UTF-8 字节名)=INVALID lasterr=2
+ACP=65001：U+2603→"e2 98 83 20"（UsedDefaultChar=0，真 UTF-8）  控制台输出 CP 仍 936
+           CreateFileA(UTF-8 字节名)=0x64 ok   CreateFileA(GBK 字节名)=INVALID lasterr=2
 ```
 
-把 `activeCodePage=UTF-8` 塞进 exe 的资源 ID 24（RT_MANIFEST）重新链接，**不动任何系统设置**：
-
-```text
-GetACP=65001 GetOEMCP=65001 控制台输出 CP=936
-U+2603 经 CP_ACP -> 4 字节：e2 98 83 20  UsedDefaultChar=0    ← 真 UTF-8
-CreateFileA(UTF-8 字节名)  = 0x64 lasterr=0
-CreateFileA(GBK 字节名)    = INVALID lasterr=2 "系统找不到指定的文件。"
-```
-
-两条 A 版 API 的行为**整个反过来**。同一轮实验里 `CreateActCtxW`+`ActivateActCtx` 返回成功（`=1`）但 `GetACP()` 仍是 936：**ACP 覆盖只在进程加载时读嵌入 manifest 生效**。控制台 CP 也不跟着变（仍 936），所以第一次跑 `FormatMessage` 我拿到的是乱码，之后所有探针都改成 `WideCharToMultiByte(CP_UTF8,…)` + `fputs`。
+两条 A 版 API 的行为**整个反过来**。同一轮实验里 `CreateActCtxW`+`ActivateActCtx` 返回成功（`=1`）但 `GetACP()` 仍是 936：**ACP 覆盖只在进程加载时读嵌入 manifest 生效**。控制台 CP 不跟着变，所以第一次跑 `FormatMessage` 我拿到的是乱码，之后所有探针都改成 `WideCharToMultiByte(CP_UTF8,…)`+`fputs`。MinGW 另有一个坑：`IDC_ARROW`/`MAKEINTRESOURCE` 也随 `UNICODE` 展开，不带 `-DUNICODE` 时它是 `MAKEINTRESOURCEA`，传给 `LoadCursorW` 直接报 incompatible pointer types。
 
 `GetWindowText*` 的缓冲区语义是本节最危险的发现。标题"中文标题 café"（9 字符 / CP936 下 14 字节）：
 
@@ -244,11 +214,9 @@ W 版规矩：nMax 含终止符、返回值=实际拷贝字符数、永远补 0�
 
 ## 小结
 
-- 句柄 = 4 字节步进的进程私有表索引，值关掉就复用；`CloseHandle` 只能报 6（句柄无效），双关闭不崩，悬空句柄更可能"关到别人的对象"。命名对象二次打开返回成功 + 183。
-- 对象上有句柄计数与引用计数两层；造 1000 个事件，系统 Event 对象 70153→71153，关掉后立刻归位——**最后一个句柄关闭即销毁**。
-- 全机 93 万个句柄，免特权可数；本机一个第三方进程占 55.8 万（68%），**查泄漏看离群值不看均值**；`NtQuerySystemInformation` 首次的 `need` 只是头大小（56 vs 真实 37 MB），要翻倍重试。
-- USER 与 GDI 各 **10000/进程**，几乎不占内核句柄；窗口耗尽报 1158，**GDI 耗尽 `GetLastError()=0`**。
+- 句柄 = 4 字节步进的进程私有表索引，值关掉立刻复用；`CloseHandle` 只能报 6（句柄无效），双关闭不崩，悬空句柄更可能"关到别人的对象"；命名对象二次打开返回成功 + 183。
+- 对象上有句柄计数与引用计数两层，**最后一个句柄关闭即销毁**（1000 个事件：70153→71153→70153）。全机 93 万个句柄免特权可数，本机一个进程占 68%——查泄漏看离群值不看均值；`NtQuerySystemInformation` 首次 `need` 只是头大小（56 vs 真实 37MB），必须翻倍重试。
+- USER 与 GDI 各 **10000/进程**且几乎不占内核句柄；窗口耗尽报 1158，**GDI 耗尽 `GetLastError()=0`**。
 - 创建期 4 条 / ShowWindow 16 条 / Destroy 3 条消息都是**调用栈上直接回调**，不经过队列；同线程 `SendMessage` 56ns，跨线程 27.8µs（493 倍），且跨线程 `SendMessage` 实测把 WndProc 叠到深度 2。
-- 队列配额 **10000 条/线程**（不是每窗口），投满后报 1816 静默丢消息；`IsHungAppWindow` 对"忙 3 秒"不敏感，`SMTO_ABORTIFHUNG` 只是超时器。
-- A/W 是编译期宏，导出表无无后缀名字，kernel32 有 27 个 W-only；转换 32–44ns 而 `SetWindowText` 190–250µs，**优化调用次数而不是字符集**；RT_MANIFEST 的 `activeCodePage=UTF-8` 能把 A 版语义整体翻转，`ActivateActCtx` 做不到。
-- `GetWindowTextA` 不保证终止符、返回值不可信；`GetWindowTextW` 两者都保证——**窗口文本一律走 W 版**。
+- 队列配额 **10000 条/线程**（不是每窗口），投满后 1816 静默丢消息；`WM_NULL` 会被正常取出；`IsHungAppWindow` 对"忙 3 秒"不敏感，`SMTO_ABORTIFHUNG` 只是超时器。
+- A/W 是编译期宏，导出表里没有无后缀名字（kernel32 有 27 个 W-only）；转换 32–44ns 而 `SetWindowText` 190–250µs，**优化调用次数而不是字符集**；RT_MANIFEST 的 `activeCodePage=UTF-8` 能把 A 版语义整体翻转，`ActivateActCtx` 做不到。而 `GetWindowTextA` 不保证终止符、返回值不可信，`GetWindowTextW` 两者都保证——**窗口文本一律走 W 版**。
