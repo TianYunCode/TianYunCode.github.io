@@ -4,6 +4,7 @@ description: 用 glob loader 加 zod schema 把 Markdown 变成有类型约束�
 date: 2026-10-08
 tags: [Astro, 前端, 建站]
 updated: 2026-10-12
+draft: true
 ---
 
 Astro 5 把内容层（Content Layer）拆出来之后，内容集合的写法换了一套。旧的 `slug` 字段和 `entry.slug` 已经不用了，网上很多教程还停留在 4.x，这里记一下现在能跑通的最小配置。

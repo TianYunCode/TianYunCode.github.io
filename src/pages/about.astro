@@ -20,23 +20,15 @@ const posts = await getPosts();
       每个大类内部按「基础 → 进阶 → 高级」拆成若干章节，构成一张完整的学习地图。
       还没写的章节会先占位显示「敬请期待」，写到哪填到哪。
     </p>
-    <h2>这个站怎么搭的</h2>
-    <ul>
-      <li>用 <a href="https://astro.build">Astro</a> 的内容集合管理文章，Markdown 写作，构建出纯静态页面。</li>
-      <li>托管在 GitHub Pages，推送到 <code>main</code> 分支后由 GitHub Actions 自动构建部署。</li>
-      <li>没有第三方框架 UI，样式是自己写的一套，深浅色主题跟随系统，也可以手动切换。</li>
-      <li>评论走 <a href="https://giscus.app">Giscus</a>，讨论内容存在 GitHub Discussions 里。</li>
-    </ul>
     <h2>联系我</h2>
     <p>
-      想交流可以在文章底下留言（评论区走 GitHub Discussions），或者订阅 <a href="/rss.xml">RSS</a> 关注更新。
-      文章对应的源码与探针大多随仓库公开，看到问题欢迎直接提 issue。
+      想交流可以订阅 <a href="/rss.xml">RSS</a> 关注更新，也欢迎通过文章页面留下的方式直接找我。
     </p>
     <h2>几点说明</h2>
     <ul>
       <li>文章里的性能数字都是本机实测，不是文档转抄；机器和环境差异会让绝对值变化，结论方向一般不变。</li>
       <li>专栏章节地图先行，文章按进度填充，没写的章节会显示「敬请期待」和计划覆盖的知识点。</li>
-      <li>站点是纯静态的：没有追踪脚本、没有广告，代码在 GitHub 上公开。</li>
+      <li>站点没有追踪脚本、没有广告，只有 RSS 一种订阅方式。</li>
     </ul>
   </div>
 </BaseLayout>
