@@ -3,7 +3,7 @@ export const SITE = {
   tagline: 'C/C++、Qt、嵌入式与工程实践',
   description:
     '按章节地图推进的技术笔记：C 语言、C++、数据结构、并发、Qt 6、Windows/Win32、Linux、操作系统、网络、嵌入式、数据库、构建与调试。',
-  author: 'wty',
+  author: '王天云',
   // 首页每页文章数
   postsPerPage: 8,
   nav: [
