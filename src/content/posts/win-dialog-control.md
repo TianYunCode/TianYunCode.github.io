@@ -1,12 +1,6 @@
 ---
 title: 对话框与公共控件
-description: >-
-  实测：模态循环派发的是整条线程的消息——进模态前投给 owner 的 WM_USER+7 被对话框循环取走，
-  嵌套第二层模态里第一层的 WM_TIMER 照样 3→4→5→6 跳；对话框基线是 7×15 而 GetDialogBaseUnits 报 8×16；
-  回车属于 DM_GETDEFID 而不是焦点控件，两个 DEFPUSHBUTTON 时后写的赢且把前者的样式位清零；
-  ListView 插 2000 行开重绘 597.5 ms、关掉 74.5 ms（8.02 倍），虚拟模式 100 万行只要 3.4 ms 和 32 KB；
-  钩子吞掉 WM_LBUTTONDOWN 后父窗口 WM_COMMAND 从 1 变 0，BM_CLICK 也被同一把钩子拦下；
-  对话框过程里 return DefDlgProcW(...) 是无限递归，进程连错误码都来不及打印就没了。
+description: 实测：模态循环派发整条线程的消息，嵌套模态里第一层的定时器照样跳；回车属于 DM_GETDEFID；ListView 关重绘快 8 倍、虚拟模式 100 万行只要 3.4ms。
 date: 2026-10-16
 tags: ["Windows", "对话框", "公共控件", "ListView", "子类化"]
 category: win32

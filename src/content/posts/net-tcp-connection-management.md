@@ -1,6 +1,6 @@
 ---
 title: TCP 连接管理
-description: 实测：本机 TIME_WAIT 只停留 119–120 秒（不是资料里常见的 240 秒）；backlog=5 时 40 条 SYN 里只有 5 条拿到 SYN/ACK，另外 35 条被 RST，而应用要等 2.03–2.07 秒才收到 10061；服务端带着未读数据 close 会让对端拿到 10054 而不是 EOF，且两侧都不产生 TIME_WAIT；每请求新建连接的成本是复用的 5.9 倍；保活探测实测周期 3.01 秒、对端 19 微秒内用 SACK 确认那 1 个字节。
+description: 实测：本机 TIME_WAIT 只停留 119–120 秒；backlog=5 时 40 条 SYN 只有 5 条拿到 SYN/ACK；每请求新建连接的成本是复用的 5.9 倍。
 date: 2026-10-15
 tags: [网络, TCP, 握手, TIME_WAIT, keepalive]
 category: network

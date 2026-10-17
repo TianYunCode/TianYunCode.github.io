@@ -1,6 +1,6 @@
 ---
 title: 并发设计模式
-description: 实测：std::async 每次派生 53.3 微秒，500 个 0.1ms 任务不 get 只靠 future 析构就花 110.3ms（等于串行）；launch::deferred 的任务在 get 之前一次都没执行；actor 邮箱逐条投递 0.091µs/条、攒 1000 条一批投 0.023µs/条；COW 快照要读段长到 800 次累加才反超 mutex（1.70x）。
+description: 实测：std::async 每次派生 53.3 微秒，500 个小任务不 get 只靠析构兑现要 110.3 毫秒；launch::deferred 在 get 之前一次都不执行；COW 快照的盈亏平衡点。
 date: 2026-10-15
 tags: [并发, future, 无锁快照]
 category: concurrency

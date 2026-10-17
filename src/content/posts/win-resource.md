@@ -1,6 +1,6 @@
 ---
 title: 资源脚本与图标
-description: 实测：同一个 .rc 只加一行 `#pragma code_page(65001)`，中文串从 9 个乱码码点变成 6 个正确码点、资源块从 70 字节缩到 64 字节；图标请求 24×24 拿到的是 32×32 源缩放后的像素（色标差 3），只有精确命中的尺寸色差为 0；RT_BITMAP 里存的是 .bmp 去掉 14 字节文件头（242→228、130→116）；4MB 自定义资源 LockResource 只花 0.9 微秒且一字节不拷，逐页采样 1024 次才让 WorkingSet 涨 4.0MB；ddores.dll 文件只有 71 600 字节，而 1096 条 RT_ICON 的 SizeofResource 合计 16 303 340 字节——228 倍，且这些数据不在文件里。
+description: "实测：加一行 #pragma code_page(65001)，中文串从乱码变成正确码点；1096 个图标的 SizeofResource 合计是文件本身的 228 倍。"
 date: 2026-10-15
 tags: [Win32, 资源, windres, 图标, 字符串表, 本地化]
 category: win32

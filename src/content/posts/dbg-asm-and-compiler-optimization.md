@@ -1,15 +1,6 @@
 ---
 title: 读汇编与编译器优化：调用约定、栈帧、向量化，以及让 GCC 自己交代为什么没向量化
-description: >-
-  实测：`int sixargs(int a,int b,int c,int d,int e,int f)` 在 MS x64 下前四个参数落在
-  `ecx/edx/r8d/r9d`，第 5、6 个从 `0x28(%rsp)`、`0x30(%rsp)` 取——**偏移 0x20 就是那 32 字节 shadow space**；
-  16 字节结构体按值传参编成 `mov (%rcx),%rax; add 0x8(%rcx),%rax`，即**隐式传指针**；
-  `int leaf(int x){return x>0?x:-x;}` 编成 4 条无分支指令 `mov/cltd/xor/sub`，**没有 prologue 也没有 epilogue**。
-  同一个整数求和循环：`-O2` 下**没有一条向量指令**（`movslq/add/cmp/jne` 的标量环），
-  `-O3 -fopt-info-vec` 让 GCC 自己打印 `a1.c:10:23: optimized: loop vectorized using 16 byte vectors`，
-  而另外三个循环的 missed 理由分别是 `couldn't vectorize loop`、`not vectorized: unsupported data-type`、
-  `not vectorized: complicated access pattern.`；`-O3 -mavx2 -ftree-vectorize` 后该函数出现 19 条向量指令。
-  `-fno-strict-aliasing` 在这个样本上指令数一模一样（13 条 vs 13 条）——**因为那个循环本来就没被向量化**。
+description: 实测：MS x64 前四个参数在 ecx/edx/r8d/r9d、第 5 个从 0x28(%rsp) 取；-O2 下整数求和循环一条向量指令都没有，-O3 -fopt-info-vec 让 GCC 自己交代原因。
 date: 2026-10-16
 tags: [调试, 汇编, x86-64, 调用约定, 自动向量化]
 category: debug-perf

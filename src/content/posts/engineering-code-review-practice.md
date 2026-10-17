@@ -1,6 +1,6 @@
 ---
 title: Code Review：能让机检的都别留给眼睛
-description: 实测把 12 种坏 frontmatter 喂给本仓库现有的门禁，机器抓住 8 种、放过 4 种，其中"date 带时间"会让发布日静默退一天；而 12 种注入 + 57 篇文章全量校验只花 0.58 秒（3 次中位）——评审预算该花在哪，数字很清楚。
+description: 实测：把 12 种坏 frontmatter 喂给仓库门禁，机器抓住 8 种、放过 4 种，其中“date 带时间”会让发布日静默退一天；全量校验只要 0.58 秒。
 date: 2026-10-15
 tags: [工程实践, Code Review, 静态检查]
 category: engineering

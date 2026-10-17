@@ -1,13 +1,6 @@
 ---
 title: 静态库、动态库与链接顺序：归档怎么扫、导入库是什么、缺 DLL 时谁先被找到
-description: >-
-  实测：两个 .o 共 1488 字节，打进 `libab.a` 是 1698 字节（容器+索引 210 字节）；`main.o liba.a libb.a`
-  链接成功，把两个库顺序调换成 `main.o libb.a liba.a` 就报
-  `liba.a(a.o):a.c:(.text+0x9): undefined reference to 'b_fn'`，同一个归档里则两种顺序都成功；
-  `--start-group` 能救回来。两个成员都定义 `b_fn` 时，只用得到一个符号的场景**静默取第一个**（退出码证明），
-  强制两个都进来才报 `multiple definition`。一个只导出一个函数的 DLL 是 36293 字节，配套导入库 `libfoo.dll.a`
-  只有 1496 字节；`--version-script` 在 PE 上被**完全忽略**（`local: add3` 之后导出表还是 1 条，退出码 0）；
-  exe 同目录的 DLL 赢过 PATH 里的同名 DLL，两份都没有时 Git Bash 报 127。
+description: 实测：库的顺序决定链接成败，换顺序就报 undefined reference，--start-group 能救；exe 同目录的 DLL 赢过 PATH；--version-script 在 PE 上被完全忽略。
 date: 2026-10-16
 tags: ["编译构建", 静态库, 动态库, 链接顺序, MinGW]
 category: build

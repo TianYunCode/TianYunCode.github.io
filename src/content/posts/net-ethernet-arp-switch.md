@@ -1,6 +1,6 @@
 ---
 title: 以太网、ARP 与交换机
-description: 实测：本机 ARP 表在 /24 里学到 69 个邻居；一次失败解析发出两条间隔 17 微秒的 who-has 后邻居状态变 Unreachable；9000 字节 MTU 的边界是 8972 能过、8973 报"需要拆分数据包但是设置 DF"；12 秒混杂抓包里出现 0 个 802.1Q 帧和 4 个 255.255.255.255 广播。
+description: 实测：9000 字节 MTU 的边界是 8972 能过、8973 报“需要拆分数据包但是设置 DF”；一次失败解析发出两条 who-has 后邻居状态变 Unreachable。
 date: 2026-10-15
 tags: [网络, 以太网, ARP]
 category: network

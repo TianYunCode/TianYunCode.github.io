@@ -1,16 +1,6 @@
 ---
 title: CMake 现代用法：生成器决定一切形状，可见性关键字决定谁能编译过
-description: >-
-  实测：本机 CMake 3.30.5 的生成器列表里最高只到 "Visual Studio 17 2022"（被标为默认），而 PATH 上明明装着 VS 18；
-  同一个工程不写 `-G` 时 `CMAKE_CONFIGURATION_TYPES=Debug;Release;MinSizeRel;RelWithDebInfo`、
-  `CMAKE_BUILD_TYPE` 为空，写 `-G "MinGW Makefiles"` 时两者都是空串。多配置目录里 `cmake --build` 不带
-  `--config` 就落在 Debug，加了 `--config Release` 之后 Debug 与 Release 两份 exe **同时存在**；
-  单配置生成器加 `--config` 是 rc=0 静默忽略。`CMAKE_BUILD_TYPE=Release` 在 flags.make 里展开成
-  `-O3 -DNDEBUG`，Debug 只有 `-g`。可见性实测：`PRIVATE` 的头目录不传播，消费者直接
-  `fatal error: core.h: No such file or directory`，`PUBLIC` 才编得过；`INTERFACE` 库的
-  `-DINTF_MARK=11` 出现在 compile_commands.json（5 条）里。`find_package(Boost REQUIRED)` 失败是 rc=1
-  带 FindPackageHandleStandardArgs 调用栈，不加 REQUIRED 就 rc=0 且 `Boost_FOUND` 为空。
-  把别的源码目录指到同一个 `-B` 会得到 "does not match the source … used to generate cache"。
+description: 实测：生成器列表里没有 VS 18、MinGW Makefiles 下 CMAKE_BUILD_TYPE 是空串；PRIVATE 头目录不传播；find_package 不加 REQUIRED 静默成功。
 date: 2026-10-16
 tags: [编译构建, CMake, 生成器, 目标属性]
 category: build

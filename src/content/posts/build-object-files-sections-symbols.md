@@ -1,6 +1,6 @@
 ---
 title: 目标文件、段与符号表
-description: 实测：1 MiB 未初始化数组和 1 字节的 .o 一样大（都是 748 字节，.bss 不占文件一字节），而 1 MiB 已初始化数组的 .o 是 1049324 字节；MinGW 的 .exe 尾部留着整套 COFF 符号表，strip 前后 97456→52224、157541→54272；只有弱定义时链接直接报 undefined reference；`-fno-common` 下 `int shared;` 是强符号 `B`，`-fcommon` 下才是 `C`。
+description: 实测：1 MiB 未初始化数组的 .o 只要 748 字节，strip 让 exe 从 97 KB 降到 52 KB；-fno-common 下未初始化全局变量从弱符号变强符号，链接直接报错。
 date: 2026-10-15
 tags: [目标文件, COFF, 符号表, nm, objdump]
 category: build

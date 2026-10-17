@@ -1,6 +1,6 @@
 ---
 title: 操作系统在做什么
-description: 实测：一次系统调用在机器上就是 24 个字节（mov r10,rcx + mov eax,服务号 + syscall）；读 gs:[0x40] 拿 PID 只要 1.5 纳秒，而最便宜的陷入是 82.4 纳秒；0x7FFE0000 那 4KB 只读页里 +0x008 每 100 纳秒进 1、+0x320 每 15.57 毫秒进 1，这就是 Sleep(1) 实测中位 15.18 毫秒的来源。
+description: 实测：一次系统调用在机器上就是 24 个字节；读 gs:[0x40] 拿 PID 只要 1.5 纳秒，最便宜的陷入是 82.4 纳秒；Sleep(1) 实测 15.18 毫秒的来源。
 date: 2026-10-15
 tags: [操作系统, 系统调用, 内核态, KUSER_SHARED_DATA, Win32]
 category: os

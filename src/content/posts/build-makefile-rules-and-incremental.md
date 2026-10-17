@@ -1,14 +1,6 @@
 ---
-title: Makefile 基础：规则、自动变量与增量构建，以及 Windows 上 make 自己会怎么崩
-description: >-
-  实测：这台机器上有三个 make 但没有一个叫 `make`（`mingw32-make.exe` 是 GNU Make 4.2.1 x86_64，
-  `C:\Strawberry\c\bin\gmake.exe` 是 4.1 **32 位**）；同一行 `OBJS = $(wildcard *.c:.c=.o)`
-  让前者**零输出退出 127**、让后者抛出 `Interrupt/Exception caught (code = 0xc0000005)` 退出 255；
-  没设 `SHELL` 且 PATH 只剩 System32 时，`rm -rf` 变成
-  `process_begin: CreateProcess(NULL, rm -rf build, ...) failed. make (e=2)`；改一个被 3 个 .c
-  包含的头文件，手写依赖的 Makefile 重建 **0 个** .o，加 `-MMD -MP` 后重建 3 个；同一份 Makefile，
-  `-j1` 三次全绿、`-j8` 五次全红；201 个文件全量 34.1 s、`-j8` 13.0 s、只改一个文件 2.4 s、
-  什么都不改 1.7 s。
+title: Makefile 基础：规则、自动变量与 Windows 上 make 自己会怎么崩
+description: 实测：这台机器上有三个 make 但没有一个叫 make；同一行 wildcard 替换让一个退出 127、另一个抛异常；-MMD 才救回头文件依赖；-j8 五次全红。
 date: 2026-10-16
 tags: [编译构建, Makefile, GNU Make, MinGW, 增量构建]
 category: build

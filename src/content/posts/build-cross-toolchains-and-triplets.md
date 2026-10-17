@@ -1,15 +1,6 @@
 ---
 title: 交叉编译工具链：从编译器自己报出的那串名字读懂 triplet、sysroot 与前缀
-description: >-
-  实测：本机 `gcc -dumpmachine` 给出 `x86_64-w64-mingw32`，`--print-multi-lib` 只有一行 `.;`（没有第二套子库），
-  而 `--print-sysroot` 把构建机路径原样吐出来：
-  `C:/buildroot/x86_64-1310-posix-seh-msvcrt-rt_v11-rev1/mingw64`——**这一串就是 triplet 该读懂的全部字段**
-  （架构/版本/线程模型 posix/异常模型 seh/CRT msvcrt/运行库版本/修订号）。把 `--sysroot` 指到一个不存在的目录，
-  编译**照样 rc=0**；而 `-isystem` 指到不存在目录时立刻 `fatal error: nosuchhdr.h: No such file or directory`——
-  说明这个 native 构建里 sysroot 基本不参与搜索，头路径靠的是 `-isystem`/`-I` 与内建前缀。
-  用 `-m32` 做的受控"伪交叉"能编出 `pe-i386` 目标文件，链接则报
-  `i386 architecture of input file … is incompatible with i386:x86-64 output`。
-  本机没有 `arm-none-eabi-gcc`、没有 `aarch64-w64-mingw32-gcc`、没有 vcpkg/conan/ccache，真目标平台的编译一律未实测。
+description: 从 gcc -dumpmachine 那串 x86_64-w64-mingw32 读懂 triplet 的每个字段；--sysroot 指错目录编译照样 rc=0，-isystem 指错立刻报错。
 date: 2026-10-16
 tags: [编译构建, 交叉编译, 工具链, triplet, sysroot]
 category: build

@@ -1,12 +1,6 @@
 ---
 title: 注册表与配置存储
-description: >-
-  实测：HKLM\SOFTWARE 的 64 位视图 71 个子键、32 位视图 56 个，而 32 位视图与字面 Wow6432Node 路径的末次写入时间
-  134344297879504256 一字不差（同一份数据的两个门）；HKCU\Software 三种视图都是 120 个子键，HKCU 不参与重定向；
-  RegQueryValueExW 读 REG_SZ 报 14 字节而 RegGetValue 对同一个值报 146，RRF_RT_REG_EXPAND_SZ 不加 RRF_NOEXPAND 直接给 1630；
-  键名 4095 字符、值名 16385 字符、单值 4 MB 在本机都没被拒，往 HKLM 写一律 rc=5；
-  RegNotifyChangeKeyValue 0.05–0.08 ms 就回来；HKCU 的 Run 键写值不需要提权，写→读回→删三步闭环走完，写完 1 秒后并没有启动；
-  .qzdemo 只登记在 HKCU\Software\Classes，HKCR 立刻能读到，AssocQueryStringW 三条查询全 S_OK，但没注册的扩展名也返回 S_OK。
+description: 实测：HKLM 64 位视图 71 个子键、32 位视图 56 个而写入时间一字不差；RegQueryValueExW 与 RegGetValue 对同一个值报差 10 倍的字节数；往 HKLM 写一律 rc=5。
 date: 2026-10-16
 tags: ["Windows", "注册表", "AppData", "已知文件夹", "文件关联"]
 category: win32

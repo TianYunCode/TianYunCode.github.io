@@ -35,6 +35,8 @@ comment: true            # 可选，false 关闭本页评论
 - `category` / `section` 写错（拼错、章节归错大类、只写 section 不写 category）**构建时直接报错并指出是哪篇**，不会留下挂不进地图的文章。校验代码在 `src/utils/post.ts` 的 `assertIntegrity()`——注意 Astro 5.18 的 `glob()` 并不支持 `transform` 选项（传了会被静默忽略），所以校验必须放在读取端，构建每个页面时都会执行。
 - 标签会变成目录名，因此 `tagFolder()` 会把 Windows 非法字符（`<>:"/\|?*` 与控制字符）压成 `-`：`std::thread` 落到 `/tags/std-thread/`。这一步不是美化——同样的标签在 Ubuntu 上的 CI 能建出带冒号的目录，本机 `npm run build` 却会 `ENOENT: mkdir` 直接失败。
 - 字段名写错同样在 `npm run build` 阶段报错（schema 在 `src/content.config.ts`）。
+- `description` 是列表页摘要、RSS 和分享卡片的唯一来源，**写 100 字符以内的结论句**（可以带 1–2 个最硬的实测数字），不要把全文数据罗列进去；超过约 110 字符在列表页和 meta description 里都会被截。
+- `description` 的值里如果含 `#`（如 `#pragma`），必须给整值加双引号，否则 YAML 会把 `#` 后面当注释吞掉。
 
 ## 专栏体系
 

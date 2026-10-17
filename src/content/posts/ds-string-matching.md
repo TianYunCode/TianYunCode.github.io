@@ -1,6 +1,6 @@
 ---
 title: 串与模式匹配
-description: KMP 的 next 数组怎么推、2000 组随机用例对拍验证、AC 自动机比逐个 KMP 快 43 倍（30699 次命中完全一致），以及 strlen 放进循环条件在 -O0 和 -O2 下差 1900 倍与 9 倍。
+description: KMP 的 next 数组怎么推、2000 组随机用例对拍、AC 自动机比逐个 KMP 快 43 倍，以及 strlen 放进循环条件在 -O0 与 -O2 下差 1900 倍与 9 倍。
 date: 2026-10-15
 tags: [数据结构, 字符串, KMP]
 category: data-structures

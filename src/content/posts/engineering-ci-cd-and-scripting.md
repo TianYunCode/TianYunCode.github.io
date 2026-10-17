@@ -1,6 +1,6 @@
 ---
 title: CI/CD 与脚本化：门禁要验产物，不验步骤退出码
-description: 实测一条 8 阶段本机流水线（总 5807ms）里的四种假绿：阶段函数返回 0 让整体 rc=0 而 report 里躺着两行 rc≠0；`gate | head -1` 把 rc=1 变成 rc=0；`make` 说 Nothing to be done 且 rc=0；产物里的构建号被冻在第一次的值。另测：`SOURCE_DATE_EPOCH` 被 MinGW 忽略、`-Wl,--no-insert-timestamp` 有效但随后的 `strip` 又把时间戳盖回来。
+description: 实测一条 8 阶段流水线里的四种假绿：阶段函数返回 0 让整体 rc=0；gate | head -1 把 rc=1 变成 rc=0；产物里的构建号被冻在第一次的值。
 date: 2026-10-16
 tags: [工程实践, CI, CD, 流水线, 门禁, 可观测]
 category: engineering

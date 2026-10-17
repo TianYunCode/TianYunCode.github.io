@@ -1,6 +1,6 @@
 ---
-title: 查询：JOIN、子查询与聚合——四种 JOIN 的行数、NULL 把 NOT IN 变成空集、同一语义 13 种写法的实测
-description: 实测：`dept_id <> 10` 少掉 1 行 NULL；子查询里一个 NULL 让 `NOT IN` 从 7 行变 0 行；`count(*)=7` 而 `count(dept_id)=6`，`avg` 的分母是 6 不是 7；LEFT JOIN 条件写在 ON 里 1364 行、写在 WHERE 里 1008 行；10 万行上同一语义的 5 种写法差 3.8 倍（IN 10.3 ms vs 标量相关子查询 39.6 ms）；给 orders 加两个索引后，一条 LEFT JOIN 从 9.7 ms 变成 57.8 ms（慢 6.0 倍），补一个覆盖索引才翻回 3.3 ms；`OFFSET 50000` 52.8 ms vs 键集分页 0.113 ms。
+title: 查询：JOIN、子查询与聚合
+description: 实测：一个 NULL 让 NOT IN 从 7 行变 0 行；同一语义 5 种写法在 10 万行上差 3.8 倍；加错索引让 LEFT JOIN 慢 6 倍，补覆盖索引才翻回来。
 date: 2026-10-16
 tags: [数据库, SQL, SQLite, Qt SQL, JOIN, 子查询, 聚合函数, "NULL"]
 category: database

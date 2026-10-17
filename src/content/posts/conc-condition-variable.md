@@ -1,6 +1,6 @@
 ---
 title: 条件变量与等待通知
-description: 实测：判断写在锁外会真的永久卡死（看门狗 3 秒超时、CPU 采样 0）；单条件变量配 notify_one 在小缓冲上死锁，同场景 notify_all 要 8.5 秒而双条件变量只要 1.6 秒；wait_for(10µs) 实际睡 15.1 毫秒。
+description: 实测：判断写在锁外会真的永久卡死；notify_one 在小缓冲上死锁，notify_all 慢 5 倍；wait_for(10µs) 实际睡 15.1 毫秒。
 date: 2026-10-15
 tags: [并发, 条件变量, 生产者消费者]
 category: concurrency

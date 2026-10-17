@@ -1,6 +1,6 @@
 ---
 title: 音频与媒体播放
-description: 实测：本机 MCI 只有 5 个驱动、50 条扩展名映射，`type mpeg3audio` 稳定报 263（0.28–0.33 ms 就失败），m4a 按扩展名打开报 277 且要 53.3–86.3 ms；MCI 的 `play` 提交一次花 8.6–29.0 ms，位置推进前 1 秒只有 0.90–0.96 倍实时、之后 0.999–1.001；Media Foundation 首建 SourceReader 30.2 ms（同文件第 2 次 1.2–1.9 ms），60 秒 mp3 解成 PCM 用 107.4 ms＝559 倍实时，AAC 只给 4096 字节小缓冲而 MP3 给 86855 字节；XAudio2 建 master voice 26.8–29.7 ms 并一次吃掉 78 个内核句柄，source voice 单价 4.0–5.5 µs、200 个占 1.19 MB，未 Start 的 voice 提交 100 MB 缓冲仍返回 S_OK，但第 59/63 次提交就 `XAUDIO2_E_INVALID_CALL`；winmm 的音量读数是 0xFFFFFFFF / 65535（100%），同一台机器同一时刻 WASAPI 端点读回 −96.00 dB、scalar 0.0000、GetMute=1。
+description: 实测：MCI 只有 5 个驱动、m4a 打开报 277；Media Foundation 解 60 秒 mp3 用 107.4 毫秒（559 倍实时）；winmm 读 100% 而 WASAPI 同刻读 -96 dB。
 date: 2026-10-16
 tags: [Win32, MCI, Media Foundation, XAudio2, WASAPI, winmm]
 category: win32

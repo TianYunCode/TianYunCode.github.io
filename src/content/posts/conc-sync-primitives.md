@@ -1,6 +1,6 @@
 ---
 title: 同步工具族
-description: 实测：MinGW 上 shared_mutex 无竞争单价是 std::mutex 的 5–5.7 倍，8 线程纯读时反而慢 9 倍，读临界区长到 1600 次累加才追平；自旋锁无竞争比 mutex 快 45%，多来 4 个可运行线程就反过来慢 3.6 倍；call_once 已完成路径只要 3.11 纳秒。
+description: 实测：shared_mutex 无竞争比 mutex 贵 5 倍、8 线程纯读反而慢 9 倍；自旋锁无竞争快 45%，多两个可运行线程就慢 3.6 倍。
 date: 2026-10-15
 tags: [并发, 读写锁, 信号量]
 category: concurrency

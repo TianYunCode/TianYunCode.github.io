@@ -1,7 +1,6 @@
 ---
-title: 窗口函数与 CTE：默认帧让累计和翻倍、递归 CTE 会挂死、把 1000 次循环压成一条 SQL 实测快 170 倍
-description: >-
-  实测：`sum() over (order by v)` 的默认 RANGE 帧把并列行全算进来，10 万行里 99900 行的累计值与 ROWS 帧不同；`last_value` 默认帧右端就是当前行；`row_number`/`rank`/`dense_rank` 取每组前 3 实测给 3000 / 3008 / 3000 行，`max` 连接只给 1006 行；`row_number()` 进 WHERE 报 `misuse of window function row_number()`；`generate_series` 报 `no such table: generate_series`；递归 CTE 不带截断条件遇环跑满 40 s 未返回被 timeout 杀掉，而 `select v from 无上界递归 limit 5` 正常返回 1..5；1000 次 N+1 点查中位 11282 ms vs 一条 GROUP BY 66.3 ms（中位 170 倍）；给每笔订单写 Top3 标签，应用层逐行 UPDATE 1204 ms vs `UPDATE FROM`+窗口 552 ms（2.18 倍）。
+title: 窗口函数与 CTE：默认帧让累计和翻倍，递归 CTE 会挂死
+description: 实测：sum() over 的默认 RANGE 帧把并列行全算进来，10 万行里 99900 行与 ROWS 帧不同；递归 CTE 遇环跑满 40 秒；1000 次点查 vs 一条 GROUP BY 差 170 倍。
 date: 2026-10-16
 tags: [数据库, SQL, SQLite, Qt SQL, 窗口函数, CTE, 递归查询, TopN]
 category: database

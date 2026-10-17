@@ -1,14 +1,6 @@
 ---
-title: 链接与符号问题诊断：undefined reference 怎么读、缺 DLL 和缺入口点为什么是同一个退出码
-description: >-
-  实测：`extern "C"` 头配 C++ 实现时，报错是 `undefined reference to 'calc'`，而 `nm` 显示请求侧是
-  `U calc`、供给侧是 `T _Z4calci`；反过来 C++ 调用 C 实现时 ld 默认把名字反修饰成
-  `undefined reference to 'calc(int)'`——**好看的报错反而藏住了你要 grep 的符号名**，加
-  `-Wl,--no-demangle` 才还原成 `_Z4calci`。`-Wl,-y,符号` 在本机**对 .o 和归档两种来源都没有输出**，
-  能用的是 `-Wl,--trace`（它按顺序列出 crt2.o / crtbegin.o / … / libstdc++.dll.a / libmingw32.a /
-  libgcc_s.a / libmsvcrt.a / libkernel32.a / crtend.o）。运行时"找不到 DLL"和"找不到导出函数"
-  在 Git Bash 与 cmd 下都报 **127**，用看门狗 `GetExitCodeProcess` 才拿到真值：
-  前者 `0xC0000135`(3221225781)，后者同样是非 0，而全局构造里空指针写是 `0xC0000005`(3221225477)。
+title: 链接与符号问题诊断：从 undefined reference 到缺 DLL
+description: 实测：extern "C" 头配 C++ 实现时报的符号名和 nm 看到的对不上；-Wl,-y 没有输出而 --trace 能列出整条链接顺序；缺 DLL 与缺导出函数在 Git Bash 里都报 127。
 date: 2026-10-16
 tags: [编译构建, 链接错误, 符号表, MinGW, 退出码]
 category: build

@@ -1,14 +1,6 @@
 ---
 title: Qt 6 文件、设置与网络
-description: >-
-  实测：Qt 6.9 的 QtCore 已经没有 GBK/GB18030/Big5 这些编码器（QStringDecoder("GBK").isValid()=0），
-  QTextStream 用 System 编码写"模型视图Qt"落盘 10 字节 C4 A3 D0 CD…（活动代码页 936），同一串 UTF-8 是 14 字节；
-  同一个 CRLF 文件 raw 读回 9 字节 md5=8c8f2ff0…、Text 读回 6 字节 md5=40c53c58…；Text 模式下 readAll 会吞掉结尾孤立的一个 \r 而 readLine 留着；
-  写 65536 字节未 flush 盘上立刻可见、写 4096 字节则盘上是 0；QSettings 的 ini 是 CRLF、组名里的斜杠写成 geometry\height、QDate 存成 @Variant 二进制；
-  QNAM 发出的 GET 请求原文 161 字节且自带 accept-language: zh-CN,en,*；404/403/500 映射到 ContentNotFoundError(203)/ContentAccessDenied(201)/InternalServerError(401)，声明 gzip 给明文报 error=299；
-  本机 QSslSocket::supportsSsl()=1，但编译基线是 OpenSSL 3.0.7、运行时加载的是 /ucrt64/bin 的 3.5.8；
-  设一个连不上的 HttpProxy，127.0.0.1 目标照样成功、主机名目标才报 ProxyConnectionRefusedError(101)，走代理时请求行变成绝对 URL；
-  QSQLITE 驱动 15 个特性位逐个可查、DATETIME 列读回来是 QString、QSqlQueryModel 的 flags=161 只读而 QSqlTableModel=163 可编辑。
+description: 实测：Qt 6.9 的 QtCore 已经没有 GBK 编码器；Text 模式会吞掉结尾孤立的 \r；QSettings 的 ini 是 CRLF；编译基线 OpenSSL 3.0.7 而运行时加载 3.5.8。
 date: 2026-10-16
 tags: [Qt, 网络, 文件IO, QtSql, QSettings]
 category: qt6

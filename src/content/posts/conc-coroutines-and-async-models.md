@@ -1,6 +1,6 @@
 ---
 title: 协程与异步模型
-description: 实测：C++20 协程的 resume 只要 3.56 纳秒、帧 64 字节，创建+销毁 10 万个协程 15.6 毫秒；Win32 Fiber 每次切换 41 纳秒但每个协程实占 32172 字节——10 万个 Fiber 直接吃掉 3069.84 MB 提交内存，比协程多 412 倍；线程是 120.8 微秒创建 + 37 KB。
+description: 实测：C++20 协程 resume 只要 3.56 纳秒，10 万个协程 15.6 毫秒；Win32 Fiber 每个实占 32 KB，10 万个吃掉 3 GB；线程创建要 120.8 微秒。
 date: 2026-10-15
 tags: [并发, 协程, Fiber, IOCP]
 category: concurrency

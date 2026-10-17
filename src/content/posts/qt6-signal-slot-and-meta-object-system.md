@@ -1,6 +1,6 @@
 ---
 title: Qt 6 信号槽与元对象系统
-description: 实测：不带类型码前缀的裸字符串 connect 恒失败并报 `Use the SIGNAL macro to bind ...`；宏式 connect 比函数指针版贵 2.7 倍、字符串版贵 4.0 倍、拼错名字再贵 4.6 倍；emit 每多一个连接 +15–22ns，跨线程入队是同线程的 15–21 倍；`QMetaObject::Connection` 在 6.9 已无 `isValid()`；`connectSlotsByName` 重复调用会把同一个槽接两遍；`property()` 比直接 getter 慢 120 倍且代价随属性在表里的**位置**线性上涨。
+description: 实测：宏式 connect 比函数指针版贵 2.7 倍；emit 每多一个连接 +15–22 纳秒；property() 比直接 getter 慢 120 倍且随属性位置线性上涨。
 date: 2026-10-15
 tags: [Qt, 信号槽, 元对象, Q_PROPERTY]
 category: qt6

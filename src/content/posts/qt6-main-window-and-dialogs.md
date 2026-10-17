@@ -1,6 +1,6 @@
 ---
 title: Qt 6 主窗口体系与对话框
-description: 实测：800x600 的 QMainWindow 五区几何是 menuBar 800x17 / toolBar 800x27 / 中央 628x492 @(86,44) / 左右 dock 各 80x36 / statusBar 800x22，dock 与中央之间固定被 6px 把手吃掉；藏掉 dock 中央从 514 涨到 600（+86），藏掉菜单栏只省 17px；saveState() 存 2 个 dock + 1 个工具栏是 177 字节且能 restore 成功；QDialog::exec() 在 6.9 返回的是 int（写 QDialog::Result 直接编译报错），done(3) 就返回 3；setModal(true)+show() 会让 activeModalWidget() 指向对话框，但在 exec 循环里 sendEvent 给父窗口的按钮三种模态全都拦不住（clicked 照样 =1）——模态拦的是平台输入路由，不是 Qt 的派发层；QSettings 写 5 个键 79 字节，remove() 后落盘 15 字节，但 setValue(key, QVariant()) 不删键而是写出一行 a=@Invalid()。
+description: 实测：800x600 的 QMainWindow 五区几何逐区量过；藏掉 dock 中央区从 514 涨到 600；模态拦的是平台输入路由，不是 Qt 的派发层。
 date: 2026-10-16
 tags: [Qt, QMainWindow, QDialog, QSettings, 模态]
 category: qt6

@@ -1,11 +1,6 @@
 ---
 title: 崩溃现场与 core dump：退出码、minidump 与符号缺失
-description: >-
-  实测（Windows 侧）：递归爆栈与 `alloca(512MB)` 两份 minidump 的字节数完全相同（12,354,409），但 `rbp−rsp`
-  一个是 2,076,224、一个是 72 字节；在栈溢出的 handler 里写 dump，四条自救路线全留下 0 字节文件，而且进程终止码
-  从 0xC00000FD 被改成 0xC0000005；minidump 体积差 1,159 倍（36,065 → 41,781,049 字节）写盘时间却只差 1.09 倍；
-  运行期整数除零是 0xC0000094、能被编译期证明的除零被 GCC 折成 `ud2` 于是变成 0xC000001D；MinGW 的 dbghelp
-  `Sym*` 对 `-g0`/`-g3`/stripped 三种产物一律 0 命中；Linux 的 core、`ulimit -c`、`core_pattern` 与嵌入式收集本机未实测。
+description: 实测：两份字节数完全相同的 minidump，rbp−rsp 差 28800 倍；栈溢出 handler 里写 dump 四条路线全留 0 字节；编译期可证的除零变成 ud2，终止码都变了。
 date: 2026-10-16
 tags: [调试, 崩溃, minidump, WER]
 category: debug-perf

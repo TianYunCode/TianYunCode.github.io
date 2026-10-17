@@ -1,6 +1,6 @@
 ---
 title: Qt 6 框架总览与工程搭建
-description: 实测：Q_OBJECT 让 108 行头文件膨胀成 1109 行 C++、单 TU 编译 +26%，但对象体积一字节不加；忘跑 moc 的签名是 `undefined reference to 'vtable for Widget'`；CMAKE_PREFIX_PATH 不写，CMake 会静默挑中另一套 Qt 再在链接期炸出 3 条 __imp_ 未定义引用；w.show() 返回 0.0ms 且一次 Paint 都没派发。
+description: 实测：Q_OBJECT 让头文件膨胀 10 倍、单 TU 编译 +26%；忘跑 moc 的签名是 undefined reference to vtable；CMAKE_PREFIX_PATH 不写会静默挑错 Qt。
 date: 2026-10-15
 tags: [Qt, CMake, moc]
 category: qt6

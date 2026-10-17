@@ -1,6 +1,6 @@
 ---
 title: 句柄、消息与窗口过程
-description: 实测：句柄值是 4 字节步进的表索引，关掉再建立刻复用；一个线程的消息队列只能堆 10000 条（第 10001 次 PostMessage 报 1816 配额不足）；同线程 SendMessage 56 纳秒，跨线程 27.8 微秒，差 493 倍；USER 与 GDI 各自的配额都是每进程 10000，而 GDI 耗尽时 GetLastError 一动不动。
+description: 实测：句柄值是 4 字节步进的表索引、关掉即刻复用；一个线程的消息队列只能堆 10000 条；同线程 SendMessage 56 纳秒、跨线程 27.8 微秒。
 date: 2026-10-15
 tags: [Win32, 句柄, 消息队列, WndProc, Unicode]
 category: win32

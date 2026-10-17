@@ -1,6 +1,6 @@
 ---
 title: Qt 6 模型/视图与委托
-description: 实测：20000 行 x 4 列，QTableWidget 填 42.5–45.3 ms、净增 17.5–17.9 MB（每格 228–234 B），同一份数据自定义 QVector<Rec> 模型只要 183–226 µs、0.64 MB（每格 8–9 B）；但 20000 行挂上 QTableView 后一次重绘只花 1309–1725 µs、只问 364 次 data()——首屏和总行数无关；delegate.sizeHint 的宽精确等于"文本宽 + 6"（0/1/2/4/8/16 字符全部命中），带勾选框再 +20 宽 +2 高；SizeHintRole=(0,40) 不会自动改行高（rowHeight 仍是 30），只有 resizeRowsToContents() 才变 41，而这一步在 20000 行上要 571 ms；fillRect 放在 QStyledItemDelegate::paint 之前会被 BackgroundRole 盖掉（实测 (1,1) 读到 (255,0,0) 而不是蓝）；QSortFilterProxyModel 按 DisplayRole 排 1..12 得到 "1 10 11 12 2 3…"，同列同序再调 sort() 是 0 µs 直接 return 所以光改 setSortRole 看不到效果；50000 行改一次过滤串 15.7–16.1 ms，挂上视图后同一次改动变 100.3 ms。
+description: 实测：20000 行数据 QTableWidget 要 42.5 ms/17.5 MB，自定义模型只要 226 微秒/0.64 MB；挂上 QTableView 后一次重绘只问 364 次 data()。
 date: 2026-10-16
 tags: [Qt, 模型视图, 委托, QModelIndex, QSortFilterProxyModel]
 category: qt6

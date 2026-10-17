@@ -1,6 +1,6 @@
 ---
 title: GDI 绘图与双缓冲
-description: 实测：同样 120 个矩形，画在窗口 DC 上每个 16.9 微秒，画在内存 DC 上每个 1.3 微秒（13 倍），双缓冲把一帧从 2.110 毫秒压到 0.293 毫秒；SetPixel 每点 581 纳秒而直接写位图内存 1.5 纳秒（398 倍）；StretchBlt 缩小 8 倍时 HALFTONE 比 COLORONCOLOR 慢 207 倍；一次提前的 ReleaseDC 让后面所有 GetDeviceCaps 静默返回 0，而 GetLastError 一动不动。
+description: 实测：同样 120 个矩形，画在内存 DC 上比窗口 DC 快 13 倍；双缓冲把一帧从 2.110 毫秒压到 0.293 毫秒；SetPixel 比直接写位图慢 398 倍。
 date: 2026-10-15
 tags: [Win32, GDI, 双缓冲, BitBlt, AlphaBlend, 分层窗口]
 category: win32

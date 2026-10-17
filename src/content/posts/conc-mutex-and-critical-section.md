@@ -1,6 +1,6 @@
 ---
 title: 互斥锁与临界区
-description: 实测：无保护的自增丢掉 70.7% 的更新，但 -Wall -Wextra 一声不响、MinGW 连 -fsanitize=thread 都链不上；锁的 uncontended 单价 16.65ns，把计算移出锁外吞吐快 5.5 倍；try_lock_for(10µs) 实际每次卡 15.9 毫秒。
+description: 实测：无保护的自增丢掉 70.7% 的更新，而 -Wall -Wextra 一声不响；锁的无竞争单价 16.65 纳秒；try_lock_for(10µs) 实际卡 15.9 毫秒。
 date: 2026-10-15
 tags: [并发, 互斥锁, 死锁]
 category: concurrency

@@ -1,6 +1,6 @@
 ---
 title: pthread 与 std::thread 对照
-description: 实测：MinGW 上 sizeof(std::thread)=8 且 native_handle() 与 pthread_self 是同一个值；PTHREAD_CREATE_DETACHED 在这里等于 4 而不是 1；pthread_setschedparam(SCHED_FIFO) 返回 129；三种生命周期误用的退出码都是 0x00000003。
+description: 实测：MinGW 上 sizeof(std::thread)=8、native_handle 与 pthread_self 同值；PTHREAD_CREATE_DETACHED 实际是 4。
 date: 2026-10-15
 tags: [并发, pthread, std::thread]
 category: concurrency

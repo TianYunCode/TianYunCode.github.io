@@ -1,6 +1,6 @@
 ---
 title: 分层模型与抓包入门
-description: 本机 Npcap 实测：1 字节应用数据在回环上是 45 字节帧、在 9000 MTU 链路上封装成 9000 字节帧（MSS 8960）；一次完整 TCP 生命周期只用 9 帧 452 微秒；非管理员权限也能直接调 wpcap.dll 抓包。
+description: 本机 Npcap 实测：1 字节应用数据在回环上是 45 字节帧、在 9000 MTU 链路上封装成 9000 字节帧；一次完整 TCP 生命周期只用 9 帧 452 微秒。
 date: 2026-10-15
 tags: [网络, 抓包, Npcap]
 category: network

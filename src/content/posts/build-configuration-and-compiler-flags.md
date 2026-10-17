@@ -1,14 +1,6 @@
 ---
 title: 构建配置与编译选项：警告集、优化档、标准版本，以及那些在本机是空操作的开关
-description: >-
-  实测：同一份带 3 处问题的源码，默认零警告、`-Wall` 报 1 条、`-Wall -Wextra` 2 条、再加 `-Wshadow` 3 条；
-  `-Wall -Werror` 退出码 1 并打出 `[-Werror=unused-variable]`，而把它排在后面的 `-Wno-unused-variable` 一加就回到 0
-  （**最后一个赢**）。MinGW 上 `sizeof(wchar_t)=2`，加不加 `-fshort-wchar` 都一样；`(char)-1 > 0` 为 0（char 有符号）。
-  `-std` 档位读回：C 是 c89 无 `__STDC_VERSION__`、c99=199901、c11=201112、c17=201710、c2x=202000；C++ 是
-  c++11=201103…c++23=**202100**，而 `-std=c++2c` 直接 `unrecognized command-line option`。
-  `-fPIC`/`-fPIE`/`-fno-pic` 三个开关产出的 `.text` 与重定位数**逐字节相同**（x86-64 Windows 恒为 PIC）。
-  `-m32` 能编译出 `pe-i386` 的目标文件，但链接阶段一路 `skipping incompatible …libmingw32.a`。
-  调试信息：`-O0 -g3` 让 exe 从 77138 涨到 111720（`.debug*` 8 段 39220 字节），`-O2 -g` 只涨 3936 字节（9 段 7788）。
+description: 实测：同一份源码默认零警告、-Wall 报 1 条、-Wall -Wextra 2 条；警告开关最后一个赢；-std 档位读回与 -fshort-wchar 在本机是空操作。
 date: 2026-10-16
 tags: [编译构建, 编译选项, GCC, 优化级别, ABI]
 category: build

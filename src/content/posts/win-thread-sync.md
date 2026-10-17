@@ -1,6 +1,6 @@
 ---
 title: 线程与同步
-description: 实测：CreateThread 单价 22.1 微秒、每个线程恰好 1 个内核句柄、栈一上来就提交 1040KB（再碰 700KB 一点都不加，而请求 8MB 时 8192KB 全提交）；无竞争 Enter+Leave 临界区 13.9 纳秒、互斥体 301.5 纳秒（21 倍），两线程交接时临界区 0.12 微秒、互斥体 4.68 微秒（39 倍）；UI 线程用 WaitForSingleObject 等事件时，跨线程 SendMessage 被挂 2805 毫秒，换成 MsgWaitForMultipleObjects 只阻塞 0.4 毫秒；MinGW-w64 的 GCC 13.1.0 对 `__declspec(thread)` 报 "'thread' attribute directive ignored" 并静默退化成普通静态变量——两个线程读到同一个地址。
+description: 实测：无竞争临界区 13.9 纳秒、互斥体 301.5 纳秒（21 倍）；UI 线程等事件时跨线程 SendMessage 被挂 2805 毫秒；MinGW 的 __declspec(thread) 被静默忽略。
 date: 2026-10-15
 tags: [Win32, 线程, 临界区, SRWLOCK, WaitForMultipleObjects, TLS]
 category: win32

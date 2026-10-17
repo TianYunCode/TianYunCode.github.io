@@ -1,6 +1,6 @@
 ---
 title: Qt 6 控件与布局
-description: 实测：QPushButton 空文本 sizeHint 62x20、写"确定"变 80x20，QLineEdit sizeHint 210x22 但 minimumSizeHint 只有 18x20——差 11.7 倍，这就是它能被压扁的原因；600px 宽的 QHBoxLayout 里 stretch=(1,2,3) 精确分出 100/200/300，而 (0,0,1) 给按钮是 80/80/440、给裸 QWidget 是 0/0/600，卡住下限的是 minimumSizeHint 不是 stretch；QSizePolicy::Expanding 真实数值是 7、Ignored 是 13（不是文档顺序里的 6 和 7）；100px 的叶子控件外面套 4 层 margin=11 的布局，minimumSize 从 122x42 一路涨到 210x130，清成 0 后回到 100x20；不换行的 25 短语中文标签把布局顶成 1800px 宽，开了 wordWrap 后 minimumSizeHint 塌回 12x12；nextInFocusChain 的环里连 NoFocus/disabled/hidden 的控件都在；1000 个控件 addWidget 摊 4.05 µs/个、首次布局 25.6 µs/个。
+description: 实测：QLineEdit 的 sizeHint 是 210x22、底线只有 18x20（11.7 倍）；每多套一层布局 minimumSize 各加 22 像素；真正卡尺寸的是 minimumSizeHint。
 date: 2026-10-16
 tags: [Qt, 控件, 布局, sizeHint, 焦点顺序]
 category: qt6

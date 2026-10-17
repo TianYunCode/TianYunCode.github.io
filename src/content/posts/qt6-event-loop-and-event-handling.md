@@ -1,6 +1,6 @@
 ---
 title: Qt 6 事件循环与事件处理
-description: 实测：一次 sendEvent 派发 49–55ns，postEvent 入队加排空 290ns（5.9 倍）；忙等 200ms 错过 20 个 10ms tick、事后只补发 1 个事件（错过的 tick 不补帧）；VeryCoarseTimer 把 300ms 变成 1000.9ms（3.3 倍），CoarseTimer 的 50ms 实测 62.6ms（+25%）；Windows 的 15.6ms tick 困不住 Qt——Sleep(1) 实测 14.9ms，而 QTimer(1ms) 是 1.05ms，因为有活动定时器时进程分辨率被抬到 1ms（tick 里 Sleep(1)=1.63ms）；槽里调 processEvents() 每层重入吃 13.3KB 栈，60 层就是 786KB；1000 次 update() 只换来 1 次 Paint，500 次 resize() 却产生 499 个 Resize 事件。
+description: 实测：sendEvent 派发 49 纳秒、postEvent 290 纳秒；忙等 200 毫秒错过 20 个 tick 只补发 1 个；槽里调 processEvents 每层重入吃 13.3 KB 栈。
 date: 2026-10-15
 tags: [Qt, 事件循环, QTimer, processEvents]
 category: qt6

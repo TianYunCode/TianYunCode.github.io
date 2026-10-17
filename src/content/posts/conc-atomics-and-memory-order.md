@@ -1,6 +1,6 @@
 ---
 title: 原子操作与内存序
-description: 实测：同一个 SB 装配下，relaxed 的 120 万轮里有 54%–63% 出现 r1==0&&r2==0 的违例，把内存序换成 seq_cst 后两次各 120 万轮都是 0；seq_cst 存是 `xchg`（5.71ns），relaxed 存是 `mov`（0.26ns），而 `lock addq` 无论什么序都一个价；16 字节 atomic 在 MinGW 上不加 -latomic 直接链不过，加了之后 is_lock_free=0。
+description: 实测：relaxed 内存序下 120 万轮里过半出现违例，seq_cst 两次都是 0；seq_cst 存比 relaxed 贵 22 倍，16 字节 atomic 不加 -latomic 直接链不过。
 date: 2026-10-15
 tags: [并发, 原子操作, 内存序]
 category: concurrency

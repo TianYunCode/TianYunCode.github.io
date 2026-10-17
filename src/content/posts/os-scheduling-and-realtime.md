@@ -1,6 +1,6 @@
 ---
 title: 调度算法与实时性
-description: 实测：NORMAL 进程类里 HIGHEST 的绝对优先级是 10、TIME_CRITICAL 恒为 15；同一颗逻辑处理器上 LOWEST 对 HIGHEST 只能拿到 0.25% 的迭代，短线程的完成时间从 29.4 毫秒被压到 216.1 毫秒；Sleep(5) 40 次中位 15.67 毫秒；SetPriorityClass(REALTIME) 返回 TRUE、lasterr=0，而实际进程类是 0x80（HIGH）。
+description: 实测：同一颗逻辑处理器上 LOWEST 对 HIGHEST 只能拿到 0.25% 的迭代；Sleep(5) 40 次中位 15.67 毫秒；REALTIME 优先级类名不副实。
 date: 2026-10-15
 tags: [操作系统, 调度, 优先级, 实时, 优先级反转]
 category: os

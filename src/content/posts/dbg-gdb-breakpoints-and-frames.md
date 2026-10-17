@@ -1,6 +1,6 @@
 ---
 title: GDB 实战：断点、栈帧与崩溃现场
-description: 实测：同一个 -O2 二进制，-g1 只比 -g0 大 1820 字节（+2.4%）却足够 addr2line 反查到 crash.c:13；10000 次命中的软件断点摊到 106µs/次，条件从不成立反而 151µs，软件观察点 6.0ms/次（比硬件观察点贵 46 倍）；MinGW GDB 11.2 的 record 报"架构不支持"、scheduler-locking 不支持，run 之前设的 watchpoint 跑满 10000 次写而一次都不触发。
+description: 实测：-g1 只比 -g0 大 2.4% 却够反查到源码行；软件观察点比硬件贵 46 倍；MinGW GDB 11.2 的 record 直接报“架构不支持”。
 date: 2026-10-15
 tags: [调试, GDB, 调试信息, 崩溃取证]
 category: debug-perf

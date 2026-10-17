@@ -1,6 +1,6 @@
 ---
 title: 常用标准库入门
-description: 30 万次查找实测 map 比 unordered_map 慢 10 倍、sorted vector 二分反而快过 std::set、operator[] 会偷偷插入、reserve 让 push_back 快 2.4 倍——用数字建立选型直觉。
+description: 30 万次查找实测：map 比 unordered_map 慢 10 倍，sorted vector 二分反而快过 set；operator[] 会偷偷插入，reserve 让 push_back 快 2.4 倍。
 date: 2026-10-15
 tags: [C++, 标准库, 性能]
 category: cpp

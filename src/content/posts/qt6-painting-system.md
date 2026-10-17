@@ -1,6 +1,6 @@
 ---
 title: Qt 6 绘图体系
-description: 实测：QRectF(0,10.4,50,4) 落在第 10–13 行、10.5 落 11–14（四舍五入）；cosmetic 画笔 2px 在 scale(4) 下仍只占 2 个设备像素，而非 cosmetic 的 3px 笔被缩到 0.75px 时整条线消失；抗锯齿把 40x40 圆的边缘从 α=255 变成 244/243、非空像素 1240→1316，300 条线的绘制从 912 µs 涨到 2276 µs（2.5 倍）；dpr=2 的 QImage 上 fillRect(10,10,5,5) 真的落在设备像素 [20..29]x[20..29] 共 100 个；QT_SCALE_FACTOR=2 让 offscreen 屏幕几何从 800x800 变 400x400、devicePixelRatio 变 2.00，但 QFontMetrics 一个数都没变；QGraphicsView 一次 render 只画 12 个 item（10000 个里），视图放大 2 倍后降到 7 个、耗时从 370 µs 变 62 µs；不设 sceneRect 时 sceneRect() 是 O(n)（50000 item 要 12.3 ms），显式设了之后 0.30 µs。
+description: 实测：cosmetic 笔在 scale(4) 下仍只占 2 个设备像素；抗锯齿让绘制慢 2.5 倍；QGraphicsView 一次只画 10000 个 item 里的 12 个。
 date: 2026-10-16
 tags: [Qt, QPainter, QGraphicsView, 抗锯齿, 高DPI]
 category: qt6

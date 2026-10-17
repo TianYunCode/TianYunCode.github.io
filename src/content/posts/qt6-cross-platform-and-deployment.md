@@ -1,14 +1,6 @@
 ---
 title: Qt 6 跨平台与部署
-description: >-
-  实测：同一个只链接 Core/Gui/Widgets 的 91546 字节 exe，`windeployqt --list` 报 107 个文件、真实部署只落地 60 个（79260474 字节），
-  差的 47 个里 45 个是 `qtbase_*.qm`/`qtwebengine_*.qm`（本机只落了 32 个 `qt_*.qm`）、1 个是 `tls/qopensslbackend.dll`（源目录里明明存在）；
-  `--list source/target/relative/mapping` 四种模式行数完全相同（107），`--dry-run` 一条不少地列出来但一个都不拷；
-  `--no-plugins` 部署 44 个文件 75289796 字节，`platforms/` 整个目录消失；
-  唯一的告警原文是 `Warning: Cannot find any version of the dxcompiler.dll and dxil.dll.`；
-  "This application failed to start because no Qt platform plugin could be initialized…" 这句在 Qt6Gui.dll 里是 **UTF-16 存储**（offset 9296920），`grep -a` 按 ASCII 数它是 0 次、按 UTF-16 数是 1 次；
-  同一版本号的 MinGW 与 MSVC 两套 Qt：`QMAKE_XSPEC` 分别是 win32-g++/win32-msvc，同名 Qt6Gui.dll 差 1880096 字节，MinGW 版依赖 libgcc_s_seh-1/libstdc++-6/libwinpthread-1，MSVC 版依赖 VCRUNTIME140(_1)/MSVCP140(_1) 和 11 个 api-ms-win-crt-*；
-  空 main() 用 `-lQt6Core` 指到 MSVC 的 lib 目录居然返回 0，说明"链上了"根本不代表 ABI 兼容。
+description: 实测：windeployqt --list 报 107 个文件只落地 60 个；那句缺平台插件的报错在 DLL 里是 UTF-16 存储；MinGW 与 MSVC 同名 DLL 差 1.8MB。
 date: 2026-10-16
 tags: [Qt, 部署, windeployqt, MinGW, MSVC]
 category: qt6

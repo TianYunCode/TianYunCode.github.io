@@ -1,7 +1,6 @@
 ---
 title: socket 编程基础
-description: >-
-  实测：Windows 上第二个 socket 带 SO_REUSEADDR 去 bind 完全相同的 127.0.0.1:19890 得到 10013（WSAEACCES），而 bind(0.0.0.0:19890) 不设任何选项就能成功；SO_EXCLUSIVEADDRUSE 在场时带 SO_REUSEADDR 的后来者拿 10013；SO_RCVTIMEO=700ms 的 recv 返回 -1 且错误码是 10060（WSAETIMEDOUT）而不是 10035，三次实测 703.0/705.7/710.4ms；SO_SNDTIMEO=200ms 管不住 connect，死端口照样花 2029.9ms 才返回 10061；不设 SO_SNDTIMEO 的第 5 次 send(65536) 卡住 22 秒没返回被 timeout 杀掉；粘包那场抓包 98 条、载荷合计 121 字节与应用侧发出数完全相等，3 次 send(10) 在线上仍是 3 段 payload=10 —— 粘的是读法，不是网络。
+description: 实测：Windows 上 SO_REUSEADDR 绑相同地址报 10013 而 bind(0.0.0.0) 直接成功；recv 超时是 10060 不是 10035；粘的是读法不是网络。
 date: 2026-10-16
 tags: [网络, socket, Winsock, 字节序, getaddrinfo, select, 粘包, 超时]
 category: network

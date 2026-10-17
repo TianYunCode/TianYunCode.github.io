@@ -1,6 +1,6 @@
 ---
 title: 关系模型与 SQL 入门：把表、主键、外键放到机器上量一遍
-description: 实测：VARCHAR(10) 存进 20 字符照样成功；TEXT 主键允许两个 NULL，INTEGER PRIMARY KEY 就是 rowid；外键默认 OFF，孤儿数据留着而 integrity_check 仍然返回 ok；10 万行订单反范式化多花 1.83 倍字节、改名要动 11643 行而不是 116 行；逐条 autocommit 比单事务慢 717–1053 倍。
+description: 实测：VARCHAR(10) 存进 20 字符照样成功，TEXT 主键允许两个 NULL，外键默认 OFF；逐条 autocommit 比单事务慢 717–1053 倍。
 date: 2026-10-15
 tags: [数据库, 关系模型, SQL, SQLite, Qt SQL]
 category: database
